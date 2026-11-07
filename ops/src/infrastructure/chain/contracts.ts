@@ -5,6 +5,14 @@ export const CHAIN_ID = 42161;
 export const ARBISCAN = "https://arbiscan.io";
 export const PROOF_URL = "https://vertice-proof.vercel.app";
 
+/** OPS es la demo con datos mock; estos links llevan a lo que es real o a material aparte. */
+export const EXTERNAL_LINKS = {
+  proof: PROOF_URL,
+  github: "https://github.com/annatchijova/vertice",
+  /** null hasta que las slides tengan URL; el header no renderiza el link mientras tanto. */
+  slides: null as string | null,
+};
+
 /** Wallet operativa: owner de ambos PaymentBatch y firmante de la tx real de ARGt. */
 export const OPERATIVE_WALLET: Address = "0xa6b2df351332db16c43630e8290fd893e9c71513";
 

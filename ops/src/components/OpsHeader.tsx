@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EXTERNAL_LINKS } from "@/infrastructure/chain/contracts";
 
 /** Header compartido: logo (único lugar con el gradiente naranja junto a PAGAR) + acción opcional a la derecha. */
 export function OpsHeader({ right }: { right?: React.ReactNode }) {
@@ -22,8 +23,31 @@ export function OpsHeader({ right }: { right?: React.ReactNode }) {
         <span className="vx-serif" style={{ fontSize: 20, color: "var(--ink-900)" }}>Vértice</span>
         <span className="vx-label" style={{ paddingLeft: 4 }}>OPS</span>
       </Link>
-      {right}
+      <nav style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <ExternalNavLinks />
+        {right}
+      </nav>
     </header>
+  );
+}
+
+/** Enlaces externos: el verificador real, el repo, y las slides (cuando existan). */
+function ExternalNavLinks() {
+  const linkStyle: React.CSSProperties = { color: "var(--ink-700)", textDecoration: "none" };
+  return (
+    <>
+      <a href={EXTERNAL_LINKS.proof} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
+        Verificador real ↗
+      </a>
+      <a href={EXTERNAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
+        GitHub ↗
+      </a>
+      {EXTERNAL_LINKS.slides && (
+        <a href={EXTERNAL_LINKS.slides} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
+          Slides ↗
+        </a>
+      )}
+    </>
   );
 }
 
