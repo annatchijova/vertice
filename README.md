@@ -59,7 +59,7 @@ flowchart TD
     D -->|Lote permitido| F[Intento de pago validado]
     E --> G[PaymentBatch]
     F --> G
-    G --> H[ARGt Transfer + PaymentExecuted]
+    G --> H[Transfer de la moneda + PaymentExecuted]
     H --> I[PaymentVerifier]
     I --> J[PaymentReceiptRegistry]
     I --> K[Receipt portable: VERIFIED / NOT_VERIFIED / INSUFFICIENT_EVIDENCE]
@@ -72,23 +72,30 @@ tiene clave privada ni herramientas para `approve`, `payBatch`, deploy o firma.
 
 ## Red y token
 
-- Token: **ARGt** (Twin Stablecoin, peso argentino on-chain).
-- Red objetivo: **Arbitrum One** (chain ID `42161`).
-- Dirección del contrato ARGt en Arbitrum: `0x59863989d080b22476db95656d0c3cc18be92214`
-  (fuente: [stablecoins.twin.finance](https://stablecoins.twin.finance/)).
-- Dirección del contrato `PaymentBatch`:
-  [`0x21Bf9822877502Ea7e5C2F973c0E335174763965`](https://arbiscan.io/address/0x21Bf9822877502Ea7e5C2F973c0E335174763965)
-- Dirección del contrato `PaymentReceiptRegistry`:
-  [`0xc07e0a1854676AaA05F769D6f21db89F9B9487D9`](https://arbiscan.io/address/0xc07e0a1854676AaA05F769D6f21db89F9B9487D9)
+- Red: **Arbitrum One** (chain ID `42161`) para todas las monedas.
+- Cada Twin Stablecoin tiene su propio despliegue de `PaymentBatch` (el token queda fijo
+  al desplegar el contrato); `PaymentReceiptRegistry` puede compartirse entre monedas,
+  ya que cada `Claim` ya indica a qué `PaymentBatch` corresponde.
+
+| Moneda | Token ARGt/BRAt | `PaymentBatch` | `PaymentReceiptRegistry` |
+|---|---|---|---|
+| **ARGt** (peso argentino) | [`0x5986…e214`](https://arbiscan.io/address/0x59863989d080b22476db95656d0c3cc18be92214) | [`0x21Bf…3965`](https://arbiscan.io/address/0x21Bf9822877502Ea7e5C2F973c0E335174763965) | [`0xc07e…87D9`](https://arbiscan.io/address/0xc07e0a1854676AaA05F769D6f21db89F9B9487D9) |
+| **BRAt** (real brasileño) | [`0xc4ed…4df8`](https://arbiscan.io/address/0xc4ed6aba5373d78e160f4df39e011f078be54df8) | [`0xb665…47cA`](https://arbiscan.io/address/0xb6653422431C5419Df650d38D3B90C29f3a947cA) | [`0xE727…45C7`](https://arbiscan.io/address/0xE7271FbcC7f22a21485331D4581f6A8C7f6745C7) |
+
+(Direcciones de token fuente: [stablecoins.twin.finance](https://stablecoins.twin.finance/).)
 
 Arbitrum se eligió por ser la red donde Twin Finance tiene liquidez y resto de
-infraestructura activa para ARGt (pool en Curve, vault en Morpho) al momento de este
-desarrollo. Avalanche no tiene un despliegue de ARGt publicado por Twin Finance.
+infraestructura activa para estas monedas (pools en Curve, vaults en Morpho) al momento
+de este desarrollo. Avalanche no tiene un despliegue de Twin Stablecoins publicado por
+Twin Finance.
 
-### Transacción real
+### Transacciones reales
 
-Primer pago ejecutado por el producto, 500 ARGt a un proveedor aprobado:
-[`0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc`](https://arbiscan.io/tx/0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc)
+- ARGt — 500 ARGt a un proveedor aprobado:
+  [`0x704fb8b5…cabfc`](https://arbiscan.io/tx/0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc)
+- BRAt: contrato desplegado, transacción de pago pendiente de fondos reales (ver
+  [`docs/PROPUESTA_DE_VALOR.md`](docs/PROPUESTA_DE_VALOR.md) para el estado actual vs.
+  la visión multi-moneda).
 
 ## Estructura del repositorio
 
