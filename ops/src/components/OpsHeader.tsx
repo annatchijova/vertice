@@ -2,7 +2,7 @@ import Link from "next/link";
 import { EXTERNAL_LINKS } from "@/infrastructure/chain/contracts";
 
 /** Header compartido: logo (único lugar con el gradiente naranja junto a PAGAR) + acción opcional a la derecha. */
-export function OpsHeader({ right }: { right?: React.ReactNode }) {
+export function OpsHeader({ right, product = "OPS" }: { right?: React.ReactNode; product?: "OPS" | "PROOF" }) {
   return (
     <header
       style={{
@@ -10,7 +10,7 @@ export function OpsHeader({ right }: { right?: React.ReactNode }) {
         alignItems: "center", justifyContent: "space-between", gap: 16,
       }}
     >
-      <Link href="/ops" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+      <Link href={product === "OPS" ? "/ops" : "/proof"} style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
         <svg width="20" height="18" viewBox="0 0 24 22" aria-hidden="true">
           <defs>
             <linearGradient id="vx-logo-g" x1="0" y1="0" x2="1" y2="1">
@@ -21,10 +21,10 @@ export function OpsHeader({ right }: { right?: React.ReactNode }) {
           <path d="M12 1 L23 21 H1 Z" fill="url(#vx-logo-g)" />
         </svg>
         <span className="vx-serif" style={{ fontSize: 20, color: "var(--ink-900)" }}>Vértice</span>
-        <span className="vx-label" style={{ paddingLeft: 4 }}>OPS</span>
+        <span className="vx-label" style={{ paddingLeft: 4 }}>{product}</span>
       </Link>
       <nav style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <ExternalNavLinks />
+        <ExternalNavLinks showProof={product === "OPS"} />
         {right}
       </nav>
     </header>
@@ -32,13 +32,15 @@ export function OpsHeader({ right }: { right?: React.ReactNode }) {
 }
 
 /** Enlaces externos: el verificador real, el repo, y las slides (cuando existan). */
-function ExternalNavLinks() {
+function ExternalNavLinks({ showProof }: { showProof: boolean }) {
   const linkStyle: React.CSSProperties = { color: "var(--ink-700)", textDecoration: "none" };
   return (
     <>
-      <a href={EXTERNAL_LINKS.proof} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
-        Verificador real ↗
-      </a>
+      {showProof && (
+        <a href={EXTERNAL_LINKS.proof} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
+          Verificador real ↗
+        </a>
+      )}
       <a href={EXTERNAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
         GitHub ↗
       </a>

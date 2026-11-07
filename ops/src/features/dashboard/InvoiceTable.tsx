@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatAmount, shortHash } from "@/domain/format";
-import { txUrl } from "@/infrastructure/chain/contracts";
+import { invoiceProofHref } from "@/features/proof/claim";
 import { supplierName, type Row } from "./model";
 import { ABOVE, STRETCHED, StatusBadge } from "./StatusBadge";
 
@@ -40,9 +40,9 @@ export function InvoiceTable({ rows }: { rows: Row[] }) {
                 <span style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
                   <StatusBadge tone={row.tone}>{row.badgeShort}</StatusBadge>
                   {row.txHash && (
-                    <a href={txUrl(row.txHash)} target="_blank" rel="noreferrer" className="vx-mono" style={{ ...ABOVE, fontSize: 11, color: "var(--ink-700)" }}>
-                      {shortHash(row.txHash)} ↗
-                    </a>
+                    <Link href={invoiceProofHref(row.invoice, row.txHash, row.pf.payment?.runId ?? row.invoice.executed?.runId)} title="Verificar en PROOF" className="vx-mono" style={{ ...ABOVE, fontSize: 11, color: "var(--ink-700)" }}>
+                      {shortHash(row.txHash)} · PROOF
+                    </Link>
                   )}
                 </span>
                 <Link href={row.href} aria-label={`Abrir ${invoice.number} · ${name}`} style={STRETCHED} />

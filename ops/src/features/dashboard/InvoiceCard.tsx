@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { formatAmount, shortHash } from "@/domain/format";
-import { txUrl } from "@/infrastructure/chain/contracts";
+import { invoiceProofHref } from "@/features/proof/claim";
 import { supplierName, type Row } from "./model";
 import { ABOVE, STRETCHED, StatusBadge } from "./StatusBadge";
 
@@ -40,15 +40,12 @@ export function InvoiceCard({ row }: { row: Row }) {
         {row.note}
       </p>
       {row.txHash && (
-        <a
-          href={txUrl(row.txHash)}
-          target="_blank"
-          rel="noreferrer"
+        <Link href={invoiceProofHref(row.invoice, row.txHash, row.pf.payment?.runId ?? row.invoice.executed?.runId)} title="Verificar en PROOF"
           className="vx-mono"
           style={{ ...ABOVE, alignSelf: "flex-start", marginTop: 8, fontSize: 12, color: "var(--ink-700)" }}
         >
-          tx {shortHash(row.txHash)} ↗
-        </a>
+          tx {shortHash(row.txHash)} · PROOF
+        </Link>
       )}
       <div
         style={{

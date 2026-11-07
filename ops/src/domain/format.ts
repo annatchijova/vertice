@@ -29,3 +29,16 @@ export function formatDateTime(ts: number): string {
 
 /** 522117760n → "522.117.760" */
 export const formatBlock = (b: bigint | number) => new Intl.NumberFormat("es-AR").format(b);
+
+/** unix seconds → "07/11/2026 12:20:44 ART" */
+export function formatDateTimeLong(ts: number): string {
+  const f = new Intl.DateTimeFormat("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }).formatToParts(new Date(ts * 1000));
+  const p = (t: string) => f.find((x) => x.type === t)?.value ?? "";
+  return `${p("day")}/${p("month")}/${p("year")} ${p("hour")}:${p("minute")}:${p("second")} ART`;
+}
+
+/** 0xcb7429a0bd…5cd6 → "0xcb7429a0…df53c5cd6" (como en el expediente de PROOF) */
+export const midHash = (h: string) => `${h.slice(0, 10)}…${h.slice(-9)}`.toLowerCase();
