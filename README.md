@@ -58,11 +58,24 @@ desarrollo. Avalanche no tiene un despliegue de ARGt publicado por Twin Finance.
 
 ```
 vertice/
-├── src/            # contratos Solidity (PaymentBatch y soporte)
-├── test/           # tests unitarios, de invariantes y adversariales (Foundry)
+├── src/
+│   ├── PaymentBatch.sol            # paga un lote a destinatarios aprobados, sin custodiar fondos
+│   ├── PaymentVerifier.sol         # compara un claim contra evidencia de Transfer + PaymentExecuted
+│   └── PaymentReceiptRegistry.sol  # publica el veredicto como un recibo portable e idempotente
+├── test/           # tests unitarios, de invariantes, fuzz y adversariales (Foundry)
 ├── script/         # scripts de despliegue
-└── lib/            # dependencias (forge-std)
+└── lib/            # dependencias (forge-std, OpenZeppelin) como git submodules
 ```
+
+`PaymentVerifier` y `PaymentReceiptRegistry` están portados de
+[Veridra](https://github.com/annatchijova/veridra) (proyecto previo de la autora, mismo
+patrón VERIFIED / NOT_VERIFIED / INSUFFICIENT_EVIDENCE con veredicto dominado por
+cualquier chequeo en FAIL), adaptados de transferencias nativas a eventos ERC-20. El
+chequeo `ORDER_BINDING_CHECK` aplica directamente una lección de un bug ya corregido en
+Veridra: nunca confiar en un hecho reclamado sin re-derivarlo de forma independiente
+desde la evidencia cruda — acá, el evento propio `PaymentExecuted` de `PaymentBatch` se
+contrasta siempre contra el evento `Transfer` real del token, nunca se da por válido en
+soledad.
 
 ## Desarrollo
 
@@ -75,9 +88,12 @@ forge test
 
 ## Estado actual
 
-Proyecto en etapa inicial (P0). El primer hito es el contrato `PaymentBatch`
-(allowlist de destinatarios, tope por lote, protección contra reuso de `runId`) junto
-con el verificador determinístico de eventos `Transfer` y `PaymentExecuted`.
+Proyecto en etapa inicial (P0). Hechos: `PaymentBatch` (allowlist de destinatarios, tope
+por lote, protección contra reuso de `runId`, sin custodia de fondos) y el verificador
+determinístico `PaymentVerifier` + `PaymentReceiptRegistry` (nivel de garantía
+`RPC_ATTESTED`, como en Veridra). 41/41 tests pasan, incluyendo fuzzing y un test
+adversarial de reentrancy. Pendiente: despliegue en Arbitrum, backend/API, servidor MCP
+y frontend.
 
 ## Licencia
 
