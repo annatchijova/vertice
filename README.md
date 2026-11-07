@@ -1,5 +1,7 @@
 # VÉRTICE
 
+![Logo VÉRTICE](ops/src/app/icon.svg)
+
 **[Technical README](TECHNICAL_README.md)** — arquitectura, invariantes, estado exacto
 de despliegue por moneda, límites conocidos.
 **Entrega:** [versión corta](docs/SUBMISSION_CORTO.md) ·
