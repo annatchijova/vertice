@@ -156,6 +156,27 @@ def _bytes32_topic(topic: str) -> str:
     return _require_hash(topic, "bytes32 topic")
 
 
+def _typo_match(recipient: str, approved: set[str]) -> dict[str, Any] | None:
+    """If `recipient` isn't approved but differs from exactly one approved
+    address by only 1-2 characters at fixed positions, treat it as a likely
+    typo rather than a generic "not approved" — same idea the OPS frontend's
+    `typoDiff` already applies per-invoice against a known supplier address,
+    generalized here to scan the whole approved-recipients allowlist. Two or
+    more approved addresses within the distance bound is treated as no match
+    (ambiguous, not a confident suggestion).
+    """
+    candidates = []
+    for candidate in approved:
+        if candidate == recipient or len(candidate) != len(recipient):
+            continue
+        diffs = [i for i in range(len(candidate)) if candidate[i] != recipient[i]]
+        if 1 <= len(diffs) <= 2:
+            candidates.append({"suggestedRecipient": candidate, "differingPositions": diffs})
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
+
+
 def _load_policy(currency: str = DEFAULT_CURRENCY) -> dict[str, Any]:
     entry = _currency(currency)
     raw = os.environ.get("VERTICE_POLICY_JSON", "")
@@ -453,6 +474,11 @@ def create_payment_proposal(
 
     `currency` selects which Twin Stablecoin's policy (token, PaymentBatch,
     caps, approved recipients) to apply — see get_business_policy.
+
+    An unapproved recipient that differs from exactly one approved address by
+    1-2 characters is excluded as POSSIBLE_TYPO (with a `typoSuggestion`
+    field naming the likely intended address) instead of the generic
+    RECIPIENT_NOT_APPROVED — never auto-corrected, always still excluded.
     """
     try:
         if not isinstance(invoices, list) or len(invoices) > MAX_INVOICES:
@@ -481,8 +507,12 @@ def create_payment_proposal(
             if invoice_id in seen:
                 reasons.append("POSSIBLE_DUPLICATE")
             seen.add(invoice_id)
-            if not ADDRESS_RE.fullmatch(recipient) or recipient not in approved:
+            typo: dict[str, Any] | None = None
+            if not ADDRESS_RE.fullmatch(recipient):
                 reasons.append("RECIPIENT_NOT_APPROVED")
+            elif recipient not in approved:
+                typo = _typo_match(recipient, approved)
+                reasons.append("POSSIBLE_TYPO" if typo else "RECIPIENT_NOT_APPROVED")
             if not raw_amount.isdigit() or int(raw_amount) <= 0:
                 reasons.append("INVALID_AMOUNT")
             amount = int(raw_amount) if raw_amount.isdigit() else 0
@@ -491,6 +521,8 @@ def create_payment_proposal(
             if total + amount > batch_cap:
                 reasons.append("EXCEEDS_BATCH_CAP")
             item = {"invoiceId": invoice_id, "recipient": recipient, "amount": raw_amount}
+            if typo is not None:
+                item["typoSuggestion"] = typo
             if reasons:
                 excluded.append({**item, "action": "EXCLUDED", "reasons": reasons})
             else:

@@ -21,7 +21,7 @@ authority for payments that cross the configured threshold.
 | `get_business_policy` | Read-only local config | Returns caps, token, chain, and approved recipients for one `currency`; never secrets. |
 | `get_token_config` | Read-only constants | Returns token, `PaymentBatch`, and registry addresses for every configured currency. |
 | `list_invoices` | Read-only local file | Loads an optional JSON fixture; missing data is explicit. |
-| `create_payment_proposal` | Pure local computation | Applies allowlist, duplicate, amount, and batch-cap checks for one `currency`. It never submits. |
+| `create_payment_proposal` | Pure local computation | Applies allowlist, duplicate, amount, batch-cap, and typo checks for one `currency`. It never submits. |
 | `read_payment_status` | Read-only RPC | Reads a real receipt and reports pending, success, or reverted. |
 | `verify_payment` | Read-only RPC | Re-derives one `currency`'s `Transfer` and `PaymentExecuted` facts and returns `VERIFIED`, `NOT_VERIFIED`, or `INSUFFICIENT_EVIDENCE`. |
 
@@ -33,6 +33,11 @@ adding one entry to the `CURRENCIES` dict in `mcp_server.py` (token + PaymentBat
 currency. `VERTICE_POLICY_JSON`'s caps and approved recipients are currently
 shared across every currency; per-currency policy would be the next step if a
 business needs different limits per supplier country.
+
+`create_payment_proposal` excludes an unapproved recipient as `POSSIBLE_TYPO` (with a
+`typoSuggestion` field) instead of the generic `RECIPIENT_NOT_APPROVED` when it differs
+from exactly one approved address by 1-2 characters — see TECHNICAL_README.md for the
+exact rule and its separate counterpart in the OPS frontend. It never auto-corrects.
 
 ## Configuration
 

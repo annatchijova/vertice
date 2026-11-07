@@ -28,7 +28,7 @@ validación de entrada y devuelven errores explícitos. Ninguna recibe una clave
 | `get_business_policy` | Ninguna | Política bounded sin secretos |
 | `get_token_config` | Ninguna | ARGt, `PaymentBatch` y registry |
 | `list_invoices` | `VERTICE_INVOICES_PATH` | Facturas JSON o `available: false` |
-| `create_payment_proposal` | Array de facturas | Pagos `READY` y exclusiones con razones |
+| `create_payment_proposal` | Array de facturas | Pagos `READY` y exclusiones con razones (incluye `POSSIBLE_TYPO` con sugerencia) |
 | `read_payment_status` | Hash de transacción | Receipt real, `SUCCESS`, `REVERTED` o pendiente |
 | `verify_payment` | Hash, recipient, amount, `runId`, `invoiceRef` | Veredicto y checks derivados de logs |
 

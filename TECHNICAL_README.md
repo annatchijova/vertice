@@ -87,16 +87,32 @@ llega a la capa del agente como datos no estructurados, sin un marcador explíci
 "no confiable" (MCP-006). Ninguno de los dos bloquea la demo — no hay ninguna
 herramienta que firme, apruebe ni envíe fondos.
 
+## Detección de errores de tipeo en el destinatario
+
+Dos implementaciones independientes, con alcance distinto — no confundirlas:
+
+- **`mcp_server.py` → `create_payment_proposal`**: si un destinatario no aprobado
+  difiere de **exactamente una** dirección de la allowlist en 1-2 caracteres, lo excluye
+  como `POSSIBLE_TYPO` con un campo `typoSuggestion` (`suggestedRecipient`,
+  `differingPositions`) en vez del genérico `RECIPIENT_NOT_APPROVED`. Nunca autocorrige:
+  sigue `EXCLUDED`, la persona decide. Si dos o más direcciones aprobadas están igual de
+  cerca, no sugiere nada (ambiguo). Cubierto por
+  `test_typo_in_recipient_is_suggested_not_auto_corrected` en `test_mcp_server.py`.
+- **`ops/src/domain/preflight.ts` → `typoDiff`**: compara la dirección de la factura
+  contra la `registeredAddress` conocida de ese proveedor puntual (dato del fixture de
+  facturas), no contra toda la allowlist. Es la pieza que ya se ve en el dashboard OPS.
+
+Ninguna de las dos "corrige" nada por su cuenta — las dos solo señalan el caso para que
+una persona lo revise, siguiendo el mismo principio del resto del producto.
+
 ## Qué no prometer (límites reales, no retórica)
 
-- `create_payment_proposal` detecta destinatario no aprobado y factura duplicada por
-  ID exacto. **No sugiere** "¿quisiste decir este proveedor aprobado?" ante un error de
-  tipeo — devuelve `RECIPIENT_NOT_APPROVED`, igual que para cualquier destinatario
-  desconocido. Esa heurística de similitud no está implementada.
 - El caso de una empresa pagando simultáneamente a Brasil, Colombia, México y Bolivia es
   la dirección del producto, no algo construido. Hoy hay dos monedas con contrato
   desplegado (ARGt, BRAt) y una sola con una transacción de pago real ejecutada (ARGt).
-- No hay dashboard `/ops` desplegado todavía (trabajo de otro integrante del equipo).
+- `VÉRTICE OPS` (`ops/`) está desplegado pero usa **datos mock** (facturas de ejemplo),
+  salvo las lecturas on-chain reales que sí hace en vivo (topes, allowlist, saldo,
+  pagos ya ejecutados). El botón PAGAR sí firma una transacción real con tu wallet.
 - No hay cierre contable, CSV ni envío de comprobantes por mail implementados.
 - El nivel de garantía de `VÉRTICE PROOF` y de `verify_payment` es `RPC_ATTESTED`: una
   sola fuente RPC, consistente internamente, pero no probada criptográficamente de

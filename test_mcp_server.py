@@ -1,3 +1,4 @@
+import json
 import unittest
 from unittest.mock import patch
 
@@ -89,6 +90,36 @@ class McpSecurityTests(unittest.TestCase):
         with patch.object(mcp_server, "MAX_INVOICES", 1):
             result = mcp_server.create_payment_proposal([{}, {}])
         self.assertFalse(result["ok"])
+
+    def test_typo_in_recipient_is_suggested_not_auto_corrected(self):
+        typo_recipient = RECIPIENT[:-1] + ("3" if RECIPIENT[-1] != "3" else "4")
+        policy = json.dumps({
+            "approvedRecipients": [RECIPIENT],
+            "maxAmountPerPayment": "1000000000000000000000",
+            "maxAmountPerBatch": "2000000000000000000000",
+        })
+        with patch.dict("os.environ", {"VERTICE_POLICY_JSON": policy}):
+            result = mcp_server.create_payment_proposal(
+                [{"invoiceId": "INV-1", "recipient": typo_recipient, "amount": "100000000000000000000"}]
+            )
+        self.assertEqual(result["accepted"], [])
+        excluded = result["excluded"][0]
+        self.assertIn("POSSIBLE_TYPO", excluded["reasons"])
+        self.assertEqual(excluded["typoSuggestion"]["suggestedRecipient"], RECIPIENT)
+
+    def test_unrelated_recipient_is_not_treated_as_typo(self):
+        policy = json.dumps({
+            "approvedRecipients": [RECIPIENT],
+            "maxAmountPerPayment": "1000000000000000000000",
+            "maxAmountPerBatch": "2000000000000000000000",
+        })
+        with patch.dict("os.environ", {"VERTICE_POLICY_JSON": policy}):
+            result = mcp_server.create_payment_proposal(
+                [{"invoiceId": "INV-1", "recipient": OTHER_RECIPIENT, "amount": "100000000000000000000"}]
+            )
+        excluded = result["excluded"][0]
+        self.assertIn("RECIPIENT_NOT_APPROVED", excluded["reasons"])
+        self.assertNotIn("typoSuggestion", excluded)
 
 
 if __name__ == "__main__":
