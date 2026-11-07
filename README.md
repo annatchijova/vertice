@@ -8,12 +8,19 @@ modelo de lenguaje la capacidad de mover fondos.
 
 ## El problema
 
-Una pyme que paga a varios proveedores en moneda local enfrenta el mismo trabajo manual
-cada período: facturas en formatos distintos, direcciones de proveedores que cambian o se
-tipean mal, facturas duplicadas fáciles de pasar por alto, pagos sin un comprobante
-portable y verificable, y la necesidad de repetir los mismos controles en cada lote. El
-negocio necesita que una parte de ese trabajo se automatice sin entregarle a una IA
-control irrestricto sobre el dinero.
+Una empresa que importa o exporta trabaja con proveedores de distintos países y recibe
+facturas en distintas monedas, con diferentes importes, fechas, destinatarios y
+condiciones comerciales. Cada período necesita revisar esas obligaciones, detectar
+errores, preparar los pagos, conservar comprobantes y conciliar los movimientos. Los
+comercios no pierden tiempo solo pagando: pierden tiempo comprobando facturas,
+detectando duplicados, investigando discrepancias, enviando comprobantes y
+reconstruyendo a fin de mes qué pasó con cada operación. El negocio necesita que una
+parte de ese trabajo se automatice sin entregarle a una IA control irrestricto sobre el
+dinero.
+
+La propuesta de valor completa, incluyendo el caso de negocio y la relación entre lo que
+está construido hoy (ARGt en Arbitrum) y la visión multi-moneda, está en
+[`docs/PROPUESTA_DE_VALOR.md`](docs/PROPUESTA_DE_VALOR.md).
 
 ## Qué es VÉRTICE
 
