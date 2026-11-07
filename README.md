@@ -111,6 +111,8 @@ vertice/
 ├── test/           # tests unitarios, de invariantes, fuzz y adversariales (Foundry)
 ├── script/         # scripts de despliegue
 ├── web/            # VÉRTICE PROOF: portal de verificación (Vite + TS, sin wallet, sin framework)
+├── ops/            # VÉRTICE OPS: panel del comercio (Next.js, datos mock, paga de verdad con tu wallet)
+├── mcp_server.py   # MCP read-only: política, preflight, verificación — sin clave privada
 └── lib/            # dependencias (forge-std, OpenZeppelin) como git submodules
 ```
 
@@ -123,6 +125,17 @@ Veridra: nunca confiar en un hecho reclamado sin re-derivarlo de forma independi
 desde la evidencia cruda — acá, el evento propio `PaymentExecuted` de `PaymentBatch` se
 contrasta siempre contra el evento `Transfer` real del token, nunca se da por válido en
 soledad.
+
+## Apps en vivo
+
+| App | URL | Datos | Qué muestra |
+|---|---|---|---|
+| **VÉRTICE PROOF** | https://vertice-proof.vercel.app | Reales | Verificador independiente, leé en vivo contra Arbitrum. |
+| **VÉRTICE OPS** | https://vertice-ops.vercel.app | Mock (facturas de ejemplo) | El panel del comercio: preflight, PAGAR firma de verdad con tu wallet. |
+
+OPS es la demo de datos de ejemplo; su propio header linkea a PROOF como el verificador
+real. Si alguna vez tenés que elegir un solo link para mostrar algo verificable sin
+depender de nada mock, es PROOF.
 
 ## VÉRTICE PROOF
 
