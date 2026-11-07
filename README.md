@@ -1,5 +1,8 @@
 # VÉRTICE
 
+**[Technical README](TECHNICAL_README.md)** — arquitectura, invariantes, estado exacto
+de despliegue por moneda, límites conocidos.
+
 > La IA investiga. El código decide. El humano firma. La cadena deja la prueba.
 
 VÉRTICE es un operador de pagos a proveedores que automatiza todo el trabajo de revisión y
@@ -93,9 +96,9 @@ Twin Finance.
 
 - ARGt — 500 ARGt a un proveedor aprobado:
   [`0x704fb8b5…cabfc`](https://arbiscan.io/tx/0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc)
-- BRAt: contrato desplegado, transacción de pago pendiente de fondos reales (ver
-  [`docs/PROPUESTA_DE_VALOR.md`](docs/PROPUESTA_DE_VALOR.md) para el estado actual vs.
-  la visión multi-moneda).
+- BRAt: contrato desplegado, transacción de pago pendiente de fondos reales — ver la
+  distinción exacta (qué es verificable hoy vs. qué falta) en
+  [`TECHNICAL_README.md`](TECHNICAL_README.md#estado-de-despliegue-por-moneda--la-distinción-exacta).
 
 ## Estructura del repositorio
 
