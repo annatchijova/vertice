@@ -56,6 +56,37 @@ python -m pip install -r requirements.txt
 python mcp_server.py
 ```
 
+## Run sandboxed over SSH
+
+The repository includes a fail-closed launcher based on `bubblewrap`:
+
+```shell
+./scripts/run_mcp_sandboxed.sh
+```
+
+It launches the MCP as `nobody` with the repository mounted read-only, hides the
+user's home directory, gives it a private `/tmp`, isolates PID/IPC/UTS/cgroup
+namespaces, drops Linux capabilities, and passes only an allowlisted environment.
+If `bubblewrap` is unavailable, the launcher exits without starting the MCP.
+
+The launcher uses `--share-net` because the MCP must reach the configured Arbitrum RPC.
+That is intentional network sharing, not an egress allowlist. Use a host firewall or
+an RPC proxy if the deployment requires destination-level network restriction. The
+launcher also refuses invoice paths outside `VERTICE_INPUT_DIR` and mounts approved
+inputs at `/sandbox-input`.
+
+Example with an invoice fixture:
+
+```shell
+export VERTICE_INPUT_DIR=/absolute/path/vertice/sandbox-input
+export VERTICE_INVOICES_PATH=/absolute/path/vertice/sandbox-input/invoices.json
+./scripts/run_mcp_sandboxed.sh
+```
+
+The sandbox is an operating-system boundary for this MCP process. It does not sandbox
+other MCP servers connected to Claude, the Claude process itself, or the wallet used by
+the human approval flow.
+
 Example Claude configuration:
 
 ```json
