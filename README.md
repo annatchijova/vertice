@@ -93,6 +93,7 @@ vertice/
 │   └── PaymentReceiptRegistry.sol  # publica el veredicto como un recibo portable e idempotente
 ├── test/           # tests unitarios, de invariantes, fuzz y adversariales (Foundry)
 ├── script/         # scripts de despliegue
+├── web/            # VÉRTICE PROOF: portal de verificación (Vite + TS, sin wallet, sin framework)
 └── lib/            # dependencias (forge-std, OpenZeppelin) como git submodules
 ```
 
@@ -106,13 +107,33 @@ desde la evidencia cruda — acá, el evento propio `PaymentExecuted` de `Paymen
 contrasta siempre contra el evento `Transfer` real del token, nunca se da por válido en
 soledad.
 
+## VÉRTICE PROOF
+
+**En vivo: https://vertice-proof.vercel.app**
+
+`web/` es el portal de verificación: se pega un hash de transacción (y, opcionalmente, lo
+que el proveedor afirma haber cobrado) y muestra VERIFIED / NOT_VERIFIED /
+INSUFFICIENT_EVIDENCE comparando el evento `PaymentExecuted` del contrato contra el
+`Transfer` real de ARGt — nunca uno solo. Es de solo lectura (sin wallet, sin firma) y está
+portado del frontend de [Veridra](https://github.com/annatchijova/veridra) (Vite + TypeScript
+sin framework), retemado con la paleta de Twin Finance y recableado a Arbitrum en vez de
+Monad.
+
 ## Desarrollo
 
-Requiere [Foundry](https://book.getfoundry.sh/).
+Contratos, requiere [Foundry](https://book.getfoundry.sh/):
 
 ```shell
 forge build
 forge test
+```
+
+`PROOF`, requiere Node 20+:
+
+```shell
+cd web
+npm install
+npm run dev
 ```
 
 ### Herramientas MCP disponibles
@@ -139,10 +160,11 @@ VELO, MNEME, RAVEN, ZAYNOR y FORGE está en [`docs/TOOLS.md`](docs/TOOLS.md).
 Proyecto en etapa inicial (P0). Hechos: `PaymentBatch` (allowlist de destinatarios, tope
 por lote, protección contra reuso de `runId`, sin custodia de fondos), el verificador
 determinístico `PaymentVerifier` + `PaymentReceiptRegistry` (nivel de garantía
-`RPC_ATTESTED`, como en Veridra) y un MCP read-only para preparación y verificación.
-41/41 tests pasan, incluyendo fuzzing y un test adversarial de reentrancy. Desplegado en
-Arbitrum mainnet con una transacción real ejecutada (ver arriba). Pendiente: API de
-negocio completa y frontend.
+`RPC_ATTESTED`, como en Veridra) y un MCP read-only (`mcp_server.py`) para preparación y
+verificación. 41/41 tests pasan, incluyendo fuzzing y un test adversarial de reentrancy.
+Desplegado en Arbitrum mainnet con una transacción real ejecutada (ver arriba). VÉRTICE
+PROOF (`web/`) verificado end-to-end contra esa transacción, caso VERIFIED y caso
+NOT_VERIFIED. Pendiente: API de negocio completa, dashboard `/ops` y deploy a Vercel.
 
 ## Licencia
 
