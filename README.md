@@ -109,6 +109,8 @@ soledad.
 
 ## VÉRTICE PROOF
 
+**En vivo: https://vertice-proof.vercel.app**
+
 `web/` es el portal de verificación: se pega un hash de transacción (y, opcionalmente, lo
 que el proveedor afirma haber cobrado) y muestra VERIFIED / NOT_VERIFIED /
 INSUFFICIENT_EVIDENCE comparando el evento `PaymentExecuted` del contrato contra el
