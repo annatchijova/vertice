@@ -115,7 +115,10 @@ forge build
 forge test
 ```
 
-### Herramientas del backend
+### Herramientas MCP disponibles
+
+El agente puede investigar, preparar y verificar pagos mediante estas herramientas. Todas
+son read-only respecto de la cadena y ninguna puede firmar o enviar fondos.
 
 | Herramienta | Función | Puede mover fondos |
 |---|---|---:|
@@ -134,11 +137,12 @@ VELO, MNEME, RAVEN, ZAYNOR y FORGE está en [`docs/TOOLS.md`](docs/TOOLS.md).
 ## Estado actual
 
 Proyecto en etapa inicial (P0). Hechos: `PaymentBatch` (allowlist de destinatarios, tope
-por lote, protección contra reuso de `runId`, sin custodia de fondos) y el verificador
+por lote, protección contra reuso de `runId`, sin custodia de fondos), el verificador
 determinístico `PaymentVerifier` + `PaymentReceiptRegistry` (nivel de garantía
-`RPC_ATTESTED`, como en Veridra). 41/41 tests pasan, incluyendo fuzzing y un test
-adversarial de reentrancy. Desplegado en Arbitrum mainnet con una transacción real
-ejecutada (ver arriba). Pendiente: backend/API, servidor MCP y frontend.
+`RPC_ATTESTED`, como en Veridra) y un MCP read-only para preparación y verificación.
+41/41 tests pasan, incluyendo fuzzing y un test adversarial de reentrancy. Desplegado en
+Arbitrum mainnet con una transacción real ejecutada (ver arriba). Pendiente: API de
+negocio completa y frontend.
 
 ## Licencia
 
