@@ -96,6 +96,19 @@ Twin Finance.
 
 - ARGt — 500 ARGt a un proveedor aprobado:
   [`0x704fb8b5…cabfc`](https://arbiscan.io/tx/0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc)
+
+  Valores para pegar en [VÉRTICE PROOF](https://vertice-proof.vercel.app) y reproducir el
+  veredicto `VERIFIED` con los 9 checks en PASS:
+
+  ```
+  Hash de la transacción: 0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc
+  Destinatario:           0x981dce900787aed11e8e4489860907d2892f70ed
+  Monto en unidades base: 500000000000000000000
+  Dirección del token:    0x59863989d080b22476db95656d0c3cc18be92214
+  Pagador:                0xa6b2df351332db16c43630e8290fd893e9c71513
+  Run ID:                 0xcb7429a0bd1c93f0077be87ec03347c0dc647ed59a372b2f731f4fadf53c5cd6
+  Referencia de factura:  0x99c5fad1f0657ed78631a52dbb63d20e4344e99aa4a17545075add66b6ed52b4
+  ```
 - BRAt: contrato desplegado, transacción de pago pendiente de fondos reales — ver la
   distinción exacta (qué es verificable hoy vs. qué falta) en
   [`TECHNICAL_README.md`](TECHNICAL_README.md#estado-de-despliegue-por-moneda--la-distinción-exacta).
