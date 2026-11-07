@@ -25,6 +25,14 @@ export function OpsHeader({ right, product = "OPS" }: { right?: React.ReactNode;
       </Link>
       <nav style={{ display: "flex", alignItems: "center", gap: 20 }}>
         <ExternalNavLinks showProof={product === "OPS"} />
+        {product === "PROOF" && (
+          <Link href="/ops" className="vx-btn vx-btn--ghost vx-btn--sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 6l-6 6 6 6" />
+            </svg>
+            Volver a OPS
+          </Link>
+        )}
         {right}
       </nav>
     </header>
