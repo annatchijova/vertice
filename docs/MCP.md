@@ -69,6 +69,11 @@ user's home directory, gives it a private `/tmp`, isolates PID/IPC/UTS/cgroup
 namespaces, drops Linux capabilities, and passes only an allowlisted environment.
 If `bubblewrap` is unavailable, the launcher exits without starting the MCP.
 
+The launcher trusts only `/usr/bin/bwrap` when it is executable and not writable by
+group/other users. It disables nested user namespaces, applies basic CPU/file/descriptor
+limits, and exposes only `mcp_server.py` plus the local `.venv` under `/app`; it does not
+mount the repository's `.git`, `.env`, frontend, or unrelated files.
+
 The launcher uses `--share-net` because the MCP must reach the configured Arbitrum RPC.
 That is intentional network sharing, not an egress allowlist. Use a host firewall or
 an RPC proxy if the deployment requires destination-level network restriction. The

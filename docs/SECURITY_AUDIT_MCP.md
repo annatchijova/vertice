@@ -190,3 +190,33 @@ En el commit posterior al audit se implementaron:
 
 Permanece fuera del código del repositorio el sandbox del sistema operativo: debe
 proporcionarlo y verificarse en el host que ejecute Claude/MCP.
+
+## Red team round 2 — sandbox launcher
+
+### Findings and induction
+
+| ID | Level | Result |
+|---|---|---|
+| SB-001 | CONFIRMED BY INDUCTION | `BWRAP_PATH=/bin/true` originally bypassed the sandbox launcher. The launcher now ignores that override and trusts only `/usr/bin/bwrap`. |
+| SB-002 | CODE FACT + CONFIRMED BY INDUCTION | The original launcher mounted the entire repository. The sandbox now exposes only `mcp_server.py` and `.venv`; `.git` and `.env` were absent in the probe. |
+| SB-003 | CONFIRMED BY INDUCTION | The original `/app` directory was writable inside the namespace. The launcher now applies mode `0555`; the probe reports `app_writable: false`. |
+| SB-004 | CODE FACT | Nested user namespaces are now disabled/asserted disabled, and CPU/file/descriptor/core-dump limits are applied. |
+| SB-005 | NOT REMEDIATED | `--share-net` remains necessary for RPC access; it is not destination-level egress restriction. |
+
+### Reproduction evidence
+
+The following checks were executed against the live launcher:
+
+```text
+BWRAP_PATH=/bin/true ./scripts/run_mcp_sandboxed.sh
+result after fix: timeout while the real MCP remained running; /bin/true was not used
+
+symlinked invoice outside VERTICE_INPUT_DIR
+result: exit 78, refused
+
+probe inside bwrap
+uid=65534, /home empty, .git absent, .env absent, /app writable=false
+```
+
+The remaining network limitation is intentional and documented. A host firewall or RPC
+proxy is required if the deployment needs destination-level egress control.

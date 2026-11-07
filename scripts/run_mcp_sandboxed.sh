@@ -5,15 +5,21 @@ set -euo pipefail
 # This is a process/filesystem sandbox, not a wallet or network sandbox.
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BWRAP="${BWRAP_PATH:-$(command -v bwrap || true)}"
+BWRAP="/usr/bin/bwrap"
 
-if [[ -z "$BWRAP" || ! -x "$BWRAP" ]]; then
+if [[ ! -x "$BWRAP" || "$(realpath "$BWRAP")" != "/usr/bin/bwrap" ]]; then
   echo "bwrap is required; refusing to launch the MCP without a sandbox" >&2
   exit 78
 fi
 
+BWRAP_MODE="$(stat -c '%a' "$BWRAP")"
+if (( 8#$BWRAP_MODE & 18 )); then
+  echo "bwrap is writable by group or other users; refusing to trust it" >&2
+  exit 78
+fi
+
 if [[ ! -f "$PROJECT_DIR/mcp_server.py" || ! -x "$PROJECT_DIR/.venv/bin/python" ]]; then
-  echo "mcp_server.py is missing from $PROJECT_DIR" >&2
+  echo "mcp_server.py or the local MCP virtualenv is missing from $PROJECT_DIR" >&2
   echo "or .venv/bin/python is not installed; run: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt" >&2
   exit 78
 fi
@@ -23,8 +29,14 @@ fi
 INPUT_DIR="${VERTICE_INPUT_DIR:-$PROJECT_DIR/sandbox-input}"
 INVOICE_PATH="${VERTICE_INVOICES_PATH:-}"
 if [[ -n "$INVOICE_PATH" ]]; then
-  INPUT_DIR="$(realpath -e "$INPUT_DIR")"
-  INVOICE_PATH="$(realpath -e "$INVOICE_PATH")"
+  if ! INPUT_DIR="$(realpath -e -- "$INPUT_DIR")"; then
+    echo "VERTICE_INPUT_DIR does not exist" >&2
+    exit 78
+  fi
+  if ! INVOICE_PATH="$(realpath -e -- "$INVOICE_PATH")"; then
+    echo "VERTICE_INVOICES_PATH does not exist" >&2
+    exit 78
+  fi
   case "$INVOICE_PATH" in
     "$INPUT_DIR"/*) ;;
     *) echo "VERTICE_INVOICES_PATH must be inside VERTICE_INPUT_DIR" >&2; exit 78 ;;
@@ -41,7 +53,10 @@ ARGS=(
   --ro-bind /lib /lib
   --ro-bind /lib64 /lib64
   --ro-bind /etc /etc
-  --ro-bind "$PROJECT_DIR" /app
+  --dir /app
+  --ro-bind "$PROJECT_DIR/mcp_server.py" /app/mcp_server.py
+  --ro-bind "$PROJECT_DIR/.venv" /app/.venv
+  --chmod 0555 /app
   --tmpfs /home
   --tmpfs /tmp
   --proc /proc
@@ -58,6 +73,8 @@ ARGS=(
   --unshare-ipc
   --unshare-uts
   --unshare-cgroup
+  --disable-userns
+  --assert-userns-disabled
   --share-net
   --die-with-parent
   --new-session
@@ -65,6 +82,13 @@ ARGS=(
   --uid 65534
   --gid 65534
 )
+
+# Bound the MCP process even if a malformed fixture or RPC response reaches a
+# dependency. These are resource limits, not correctness or authorization.
+ulimit -c 0
+ulimit -f 10240
+ulimit -n 256
+ulimit -t 120
 
 for name in \
   ARBITRUM_RPC_URL \
