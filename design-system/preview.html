@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VÉRTICE · Preview del sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap">
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./components.css">
+<style>
+  body { margin: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+  .band { padding-block: 56px; }
+  .band-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 32px; }
+  .band-head h2 { margin: 0; font: 400 36px/1.1 var(--font-serif); letter-spacing: -0.03em; }
+  .intro { padding-block: 72px 48px; border-bottom: 1px solid var(--line); }
+  .intro h1 { margin: 12px 0 16px; font: 400 64px/1.02 var(--font-serif); letter-spacing: -0.04em; max-width: 14ch; text-wrap: balance; }
+  .intro p { margin: 0; max-width: 60ch; color: var(--ink-700); font-size: 18px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .sw { border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); }
+  .sw i { display: block; height: 64px; }
+  .sw div { padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .sw b { font-weight: 500; font-size: 13px; }
+  .sw code { font: 400 11px/1.3 var(--font-mono); color: var(--ink-500); }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; background: var(--inverse); color: var(--on-inverse); border-radius: var(--radius-md); }
+  .topbar nav { display: flex; gap: 24px; flex-wrap: wrap; }
+  .topbar nav span { font: 500 11px/1 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+  .topbar nav span[aria-current] { opacity: 1; }
+  .wordmark { font: 500 20px/1 var(--font-serif); letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+  .mark { width: 22px; height: 22px; background: linear-gradient(135deg, var(--brand-2), var(--brand)); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .ops-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; margin-top: 24px; }
+  @media (max-width: 900px) { .ops-layout { grid-template-columns: 1fr; } .intro h1 { font-size: 44px; } }
+  .pay-panel { position: sticky; top: 16px; align-self: start; }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; font-size: 14px; }
+  .kv dt { color: var(--ink-500); } .kv dd { margin: 0; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .proof-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .proof-head h3 { margin: 6px 0 4px; font: 400 32px/1.1 var(--font-serif); letter-spacing: -0.02em; }
+  .proof-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+  .proof-meta div { display: flex; flex-direction: column; gap: 4px; }
+  .desk-intro { color: var(--ink-700); max-width: 60ch; margin: 0 auto 32px; text-align: center; }
+  footer { padding-block: 32px; color: var(--ink-500); font-size: 13px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body class="vx-root">
+
+<!-- ================= OPS (tema claro) ================= -->
+<section data-theme="light" class="vx-root">
+  <div class="wrap intro">
+    <span class="vx-label">Sistema de diseño · v1 · basado en Twin</span>
+    <h1>Pagos que se verifican solos.</h1>
+    <p>Un solo set de tokens para /ops (claro, editorial) y /proof (escritorio oscuro con hoja de papel). Tinta y veredictos idénticos en ambos; el naranja de marca vive solo en el logo y en PAGAR.</p>
+  </div>
+
+  <div class="wrap band">
+    <div class="band-head"><h2>Paleta</h2><span class="vx-label">Neutros de Twin + naranja renacer + veredictos</span></div>
+    <div class="swatches" id="swatches"></div>
+  </div>
+
+  <div class="wrap band" style="padding-top:0">
+    <div class="band-head"><h2>/ops · Panel del comercio</h2><span class="vx-label">tema light</span></div>
+
+    <div class="topbar">
+      <span class="wordmark"><span class="mark" aria-hidden="true"></span>Vértice</span>
+      <nav><span aria-current="page">Pagos</span><span>Proveedores</span><span>Comprobantes</span><span>Período</span></nav>
+      <button class="vx-btn vx-btn--sm" style="background:var(--on-inverse);color:var(--inverse)">Noviembre 2026</button>
+    </div>
+
+    <div class="ops-layout">
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+        <div class="vx-pills" role="group" aria-label="Filtrar por estado">
+          <button class="vx-pill" aria-pressed="true">Todos <span class="vx-pill__count">12</span></button>
+          <button class="vx-pill" aria-pressed="false">Pendientes <span class="vx-pill__count">5</span></button>
+          <button class="vx-pill" aria-pressed="false">Verificados <span class="vx-pill__count">5</span></button>
+          <button class="vx-pill" aria-pressed="false">No verificados <span class="vx-pill__count">1</span></button>
+          <button class="vx-pill" aria-pressed="false">Evidencia insuficiente <span class="vx-pill__count">1</span></button>
+        </div>
+
+        <div class="grid-2">
+          <article class="vx-card vx-card--interactive">
+            <div class="vx-card__head">
+              <div><h3 class="vx-card__title">Distribuidora Norte S.A.</h3><p class="vx-card__meta">Factura A 0003-00018422 · vence 15/11</p></div>
+              <span class="vx-badge vx-badge--pending">Pending</span>
+            </div>
+            <span class="vx-amount"><span class="vx-amount__value">1.250.000,00</span><span class="vx-amount__unit">ARGt</span></span>
+            <div class="vx-card__foot"><span class="vx-mono" style="font-size:12px;color:var(--ink-500)">CUIT 30-71234567-9</span><button class="vx-icon-btn" aria-label="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+          </article>
+          <article class="vx-card vx-card--interactive">
+            <div class="vx-card__head">
+              <div><h3 class="vx-card__title">Logística Pampa SRL</h3><p class="vx-card__meta">Factura A 0001-00004410 · pagada 06/11</p></div>
+              <span class="vx-badge vx-badge--verified">Verified</span>
+            </div>
+            <span class="vx-amount"><span class="vx-amount__value">384.900,00</span><span class="vx-amount__unit">ARGt</span></span>
+            <div class="vx-card__foot"><span class="vx-mono" style="font-size:12px;color:var(--ink-500)">tx 0x7a3f…c91e</span><button class="vx-icon-btn" aria-label="Ver detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+          </article>
+          <article class="vx-card">
+            <div class="vx-card__head">
+              <div><h3 class="vx-card__title">Insumos del Sur</h3><p class="vx-card__meta">Factura B 0002-00000917</p></div>
+              <span class="vx-badge vx-badge--not-verified">Not verified</span>
+            </div>
+            <div class="vx-note">El CBU de destino no coincide con el declarado por el proveedor.</div>
+          </article>
+          <article class="vx-card">
+            <div class="vx-card__head">
+              <div><h3 class="vx-card__title">Gráfica Litoral</h3><p class="vx-card__meta">Factura C 0004-00000123</p></div>
+              <span class="vx-badge vx-badge--insufficient">Insufficient evidence</span>
+            </div>
+            <div class="vx-note">Falta la orden de compra para cruzar cantidades.</div>
+          </article>
+        </div>
+      </div>
+
+      <aside class="vx-card pay-panel">
+        <span class="vx-label">Lote preparado por el agente</span>
+        <span class="vx-amount"><span class="vx-amount__value">3.112.450,00</span><span class="vx-amount__unit">ARGt</span></span>
+        <dl class="kv"><dt>Pagos</dt><dd>5</dd><dt>Proveedores</dt><dd>4</dd><dt>Red</dt><dd>Twin · testnet</dd></dl>
+        <button class="vx-btn vx-btn--pay">Pagar</button>
+        <button class="vx-btn vx-btn--ghost">Revisar lote</button>
+        <hr class="vx-paper__rule" style="margin:4px 0">
+        <ol class="vx-timeline">
+          <li class="vx-step vx-step--done"><span class="vx-step__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg></span><div class="vx-step__body"><span class="vx-step__title">Facturas leídas</span><span class="vx-step__meta">07/11 09:12 · 12 docs</span></div></li>
+          <li class="vx-step vx-step--done"><span class="vx-step__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg></span><div class="vx-step__body"><span class="vx-step__title">Lote armado</span><span class="vx-step__meta">07/11 09:14 · 5 pagos</span></div></li>
+          <li class="vx-step vx-step--active"><span class="vx-step__dot"></span><div class="vx-step__body"><span class="vx-step__title">Esperando tu firma</span><span class="vx-step__meta">ahora</span></div></li>
+          <li class="vx-step vx-step--todo"><span class="vx-step__dot"></span><div class="vx-step__body"><span class="vx-step__title">Verificación on-chain</span><span class="vx-step__meta">automática</span></div></li>
+          <li class="vx-step vx-step--todo"><span class="vx-step__dot"></span><div class="vx-step__body"><span class="vx-step__title">Comprobantes y cierre</span><span class="vx-step__meta">automático</span></div></li>
+        </ol>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROOF (tema dark + hoja light) ================= -->
+<section data-theme="dark" class="vx-root vx-desk">
+  <div class="wrap">
+    <div class="band-head" style="max-width:720px;margin-inline:auto"><h2 style="color:var(--ink-900)">/proof · Portal del receptor</h2><span class="vx-label">tema dark · hoja light</span></div>
+    <p class="desk-intro">Escritorio negro, sin gradientes ni brillo. El color aparece solo en el veredicto.</p>
+
+    <article class="vx-paper" data-theme="light">
+      <div class="proof-head">
+        <div>
+          <span class="vx-label">Comprobante de pago</span>
+          <h3>#VX-2026-11-0042</h3>
+          <span class="vx-mono" style="font-size:13px;color:var(--ink-500)">Emitido por Comercial Andes S.A. · CUIT 30-70999888-1</span>
+        </div>
+        <div class="vx-stamp vx-stamp--verified">Verified<span class="vx-stamp__sub">07/11/2026 14:32</span></div>
+      </div>
+      <hr class="vx-paper__rule">
+      <div class="proof-meta">
+        <div><span class="vx-label">Monto</span><span class="vx-amount vx-amount--sm"><span class="vx-amount__value">384.900,00</span><span class="vx-amount__unit">ARGt</span></span></div>
+        <div><span class="vx-label">Receptor</span><span>Logística Pampa SRL</span></div>
+        <div><span class="vx-label">Transacción</span><span class="vx-mono" style="font-size:13px">0x7a3f…c91e</span></div>
+      </div>
+      <hr class="vx-paper__rule">
+      <span class="vx-label" style="display:block;margin-bottom:12px">Chequeos deterministas</span>
+      <ul class="vx-checks">
+        <li class="vx-check vx-check--pass"><span class="vx-check__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12l5 5 9-10"/></svg></span><div class="vx-check__body"><span class="vx-check__name">La transacción existe y está confirmada</span><span class="vx-check__detail">bloque 18.442.107 · 12 confirmaciones</span></div><span class="vx-check__result">Pass</span></li>
+        <li class="vx-check vx-check--pass"><span class="vx-check__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12l5 5 9-10"/></svg></span><div class="vx-check__body"><span class="vx-check__name">Monto igual a la factura</span><span class="vx-check__detail">384.900,00 = 384.900,00 ARGt</span></div><span class="vx-check__result">Pass</span></li>
+        <li class="vx-check vx-check--fail"><span class="vx-check__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg></span><div class="vx-check__body"><span class="vx-check__name">Destino igual a la wallet declarada</span><span class="vx-check__detail">esperado 0x91be…04aa · recibido 0x4410…e7f2</span></div><span class="vx-check__result">Fail</span></li>
+        <li class="vx-check vx-check--abstain"><span class="vx-check__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 12h10"/></svg></span><div class="vx-check__body"><span class="vx-check__name">Orden de compra asociada</span><span class="vx-check__detail">sin documento para comparar</span></div><span class="vx-check__result">Abstain</span></li>
+      </ul>
+      <hr class="vx-paper__rule">
+      <div class="row">
+        <div class="vx-stamp vx-stamp--not-verified" style="animation-delay:.2s">Not verified<span class="vx-stamp__sub">destino distinto</span></div>
+        <div class="vx-stamp vx-stamp--insufficient" style="animation-delay:.4s">Insufficient evidence<span class="vx-stamp__sub">falta OC</span></div>
+      </div>
+    </article>
+
+    <div class="row" style="justify-content:center;margin-top:40px">
+      <button class="vx-btn vx-btn--primary">Descargar comprobante</button>
+      <button class="vx-btn vx-btn--ghost">Re-verificar</button>
+      <span class="vx-badge vx-badge--verified">Verified</span>
+      <span class="vx-badge vx-badge--not-verified">Not verified</span>
+      <span class="vx-badge vx-badge--insufficient">Insufficient</span>
+      <span class="vx-badge vx-badge--pending">Pending</span>
+    </div>
+  </div>
+</section>
+
+<footer data-theme="light" class="vx-root"><div class="wrap">Fuente única: design-system/tokens.json → python design-system/build.py → tokens.css + tailwind.preset.js</div></footer>
+
+<script>
+  const names = ['canvas','surface','sunken','line-strong','ink-900','ink-700','ink-500','ink-400','inverse','brand-2','brand','gold-1','gold-2','verified','failed','insufficient','pending','paper'];
+  const root = document.querySelector('section[data-theme="light"]');
+  const cs = getComputedStyle(root);
+  document.getElementById('swatches').innerHTML = names.map(n => {
+    const v = cs.getPropertyValue('--' + n).trim();
+    return `<div class="sw"><i style="background:var(--${n})"></i><div><b>${n}</b><code>${v}</code></div></div>`;
+  }).join('');
+</script>
+</body>
+</html>
