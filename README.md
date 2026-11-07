@@ -143,12 +143,15 @@ soledad.
 
 | App | URL | Datos | Qué muestra |
 |---|---|---|---|
-| **VÉRTICE PROOF** | https://vertice-proof.vercel.app | Reales | Verificador independiente, leé en vivo contra Arbitrum. |
+| **VÉRTICE PROOF** | https://vertice-proof.vercel.app | Reales | Verificador independiente (Vite), leé en vivo contra Arbitrum. |
 | **VÉRTICE OPS** | https://vertice-ops.vercel.app | Mock (facturas de ejemplo) | El panel del comercio: preflight, PAGAR firma de verdad con tu wallet. |
+| **PROOF dentro de OPS** | https://vertice-ops.vercel.app/proof/`<hash>` | Reales | Segundo verificador, dentro del Next.js de OPS: mismo veredicto, además consulta `PaymentReceiptRegistry` y desambigua lotes con varios pagos. |
 
-OPS es la demo de datos de ejemplo; su propio header linkea a PROOF como el verificador
-real. Si alguna vez tenés que elegir un solo link para mostrar algo verificable sin
-depender de nada mock, es PROOF.
+Hay dos implementaciones independientes del mismo verificador (misma lógica, portadas
+por separado de `PaymentVerifier.sol`) — si alguna vez dan veredictos distintos para la
+misma transacción, eso en sí es una alarma a investigar, no algo a ignorar. OPS linkea a
+PROOF como el verificador principal en su header. Si tenés que elegir un solo link para
+mostrar algo verificable sin depender de nada mock, es PROOF.
 
 ## VÉRTICE PROOF
 
