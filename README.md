@@ -206,16 +206,6 @@ La especificación completa, configuración y límites de autoridad están en
 [`docs/MCP.md`](docs/MCP.md). El inventario de herramientas y patrones reutilizados de
 VELO, MNEME, RAVEN, ZAYNOR y FORGE está en [`docs/TOOLS.md`](docs/TOOLS.md).
 
-## Estado actual
-
-Proyecto en etapa inicial (P0). Hechos: `PaymentBatch` (allowlist de destinatarios, tope
-por lote, protección contra reuso de `runId`, sin custodia de fondos), el verificador
-determinístico `PaymentVerifier` + `PaymentReceiptRegistry` (nivel de garantía
-`RPC_ATTESTED`, como en Veridra) y un MCP read-only (`mcp_server.py`) para preparación y
-verificación. 41/41 tests pasan, incluyendo fuzzing y un test adversarial de reentrancy.
-Desplegado en Arbitrum mainnet con una transacción real ejecutada (ver arriba). VÉRTICE
-PROOF (`web/`) verificado end-to-end contra esa transacción, caso VERIFIED y caso
-NOT_VERIFIED. Pendiente: API de negocio completa, dashboard `/ops` y deploy a Vercel.
 
 ## Licencia
 
