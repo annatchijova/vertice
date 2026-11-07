@@ -41,6 +41,28 @@ nunca el modelo. El contrato aplica los límites de la política (lista de desti
 permitidos, tope por lote) de modo que, aunque el agente se equivoque, el contrato
 rechaza la operación.
 
+## Arquitectura
+
+```mermaid
+flowchart TD
+    A[Facturas y política] --> B[MCP read-only]
+    B --> C[Motor determinístico]
+    C --> D{Umbral de política}
+    D -->|Excepción o monto alto| E[Humano revisa y firma con wallet]
+    D -->|Lote permitido| F[Intento de pago validado]
+    E --> G[PaymentBatch]
+    F --> G
+    G --> H[ARGt Transfer + PaymentExecuted]
+    H --> I[PaymentVerifier]
+    I --> J[PaymentReceiptRegistry]
+    I --> K[Receipt portable: VERIFIED / NOT_VERIFIED / INSUFFICIENT_EVIDENCE]
+    L[LLM] -. solo investiga y explica .-> B
+    L -. nunca firma ni envía .-> E
+```
+
+El MCP actual es deliberadamente read-only: prepara propuestas y lee la cadena, pero no
+tiene clave privada ni herramientas para `approve`, `payBatch`, deploy o firma.
+
 ## Red y token
 
 - Token: **ARGt** (Twin Stablecoin, peso argentino on-chain).
@@ -112,16 +134,35 @@ npm install
 npm run dev
 ```
 
+### Herramientas MCP disponibles
+
+El agente puede investigar, preparar y verificar pagos mediante estas herramientas. Todas
+son read-only respecto de la cadena y ninguna puede firmar o enviar fondos.
+
+| Herramienta | Función | Puede mover fondos |
+|---|---|---:|
+| `get_chain_status` | Consulta chain ID y último bloque de Arbitrum | No |
+| `get_business_policy` | Lee límites, token y destinatarios permitidos | No |
+| `get_token_config` | Expone las direcciones configuradas de ARGt y contratos | No |
+| `list_invoices` | Lee un fixture JSON opcional de facturas | No |
+| `create_payment_proposal` | Aplica allowlist, duplicados y límites sin enviar transacciones | No |
+| `read_payment_status` | Lee un receipt real desde RPC | No |
+| `verify_payment` | Contrasta `Transfer` de ARGt con `PaymentExecuted` | No |
+
+La especificación completa, configuración y límites de autoridad están en
+[`docs/MCP.md`](docs/MCP.md). El inventario de herramientas y patrones reutilizados de
+VELO, MNEME, RAVEN, ZAYNOR y FORGE está en [`docs/TOOLS.md`](docs/TOOLS.md).
+
 ## Estado actual
 
 Proyecto en etapa inicial (P0). Hechos: `PaymentBatch` (allowlist de destinatarios, tope
-por lote, protección contra reuso de `runId`, sin custodia de fondos) y el verificador
+por lote, protección contra reuso de `runId`, sin custodia de fondos), el verificador
 determinístico `PaymentVerifier` + `PaymentReceiptRegistry` (nivel de garantía
-`RPC_ATTESTED`, como en Veridra). 41/41 tests pasan, incluyendo fuzzing y un test
-adversarial de reentrancy. Desplegado en Arbitrum mainnet con una transacción real
-ejecutada (ver arriba). VÉRTICE PROOF (`web/`) verificado end-to-end contra esa
-transacción, caso VERIFIED y caso NOT_VERIFIED. Pendiente: backend/API, servidor MCP,
-dashboard `/ops` y deploy a Vercel.
+`RPC_ATTESTED`, como en Veridra) y un MCP read-only (`mcp_server.py`) para preparación y
+verificación. 41/41 tests pasan, incluyendo fuzzing y un test adversarial de reentrancy.
+Desplegado en Arbitrum mainnet con una transacción real ejecutada (ver arriba). VÉRTICE
+PROOF (`web/`) verificado end-to-end contra esa transacción, caso VERIFIED y caso
+NOT_VERIFIED. Pendiente: API de negocio completa, dashboard `/ops` y deploy a Vercel.
 
 ## Licencia
 
