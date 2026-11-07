@@ -1,0 +1,5 @@
+/* Design system lives in src/styles (copied from ../design-system). Only app-level glue here. */
+html, body { margin: 0; padding: 0; }
+body { background: var(--canvas); }
+a { color: var(--ink-900); }
+a:hover { color: var(--ink-500); }
