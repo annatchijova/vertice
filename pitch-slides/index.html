@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VÉRTICE: pitch</title>
+<script>document.documentElement.classList.add('js');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@300..700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root { --stage: #0a0a0a; --hint: #999999; }
+  html, body { margin: 0; background: var(--stage); overflow-x: clip; }
+  #deck > section { position: relative; width: 1920px; height: 1080px; box-sizing: border-box; overflow: hidden; }
+  .js, .js body { height: 100%; overflow: hidden; }
+  .js #deck { position: fixed; inset: 0; }
+  .js #deck > section {
+    position: absolute; left: 50%; top: 50%; transform-origin: center;
+    opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+  }
+  .js #deck > section.on { opacity: 1; pointer-events: auto; }
+  #deck section * { margin: 0; box-sizing: border-box; }
+  #deck section h1, #deck section h2, #deck section h3, #deck section p { overflow-wrap: break-word; }
+  #deck section a { color: inherit; }
+  #deck section [style*="background-clip:text"] { -webkit-background-clip: text; }
+  aside.notes { display: none; }
+  body.show-notes #deck > section.on aside.notes {
+    display: block; position: absolute; left: 0; right: 0; bottom: 0; padding: 24px 128px;
+    background: rgba(0,0,0,0.85); color: #f2f2f2; font: 24px/1.4 Geist, Arial, sans-serif;
+  }
+  #hint { position: fixed; right: 16px; bottom: 12px; color: var(--hint); font: 13px Geist, Arial, sans-serif; }
+  @media (prefers-reduced-motion: reduce) { #deck > section { transition: none; } }
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    .js, .js body, html, body { height: auto; overflow: visible; background: none; }
+    .js #deck { position: static; }
+    .js #deck > section { position: relative; left: auto; top: auto; transform: none !important;
+      opacity: 1; page-break-after: always; break-after: page; }
+    #hint, aside.notes { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<main id="deck">
+<section id="cover" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<svg aria-label="Un triángulo de línea gris con su vértice superior en naranja: el punto donde todo converge" viewBox="0 0 640 564" width="640" height="564" style="position:absolute;left:1152px;top:260px;width:640px;height:564px"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6600"/><stop offset="1" stop-color="#ff3300"/></linearGradient></defs><polygon points="320,4 636,560 4,560" fill="none" stroke="#cccccc" stroke-width="2"/><line x1="320" y1="4" x2="320" y2="560" stroke="#e5e5e5" stroke-width="2"/><polygon points="320,4 360,74 280,74" fill="url(#g)"/></svg>
+<div style="display:flex;flex-direction:row;align-items:center;gap:20px">
+<svg aria-label="Logo de Vértice" viewBox="0 0 100 88" width="100" height="88" style="width:56px;height:49px"><defs><linearGradient id="l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6600"/><stop offset="1" stop-color="#ff3300"/></linearGradient></defs><polygon points="50,0 100,88 0,88" fill="url(#l)"/></svg>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:44px;letter-spacing:-1px;line-height:1.1">Vértice</p>
+</div>
+<h1 style="width:980px;font-family:'Source Serif 4', Georgia, serif;font-size:96px;font-weight:400;line-height:1.08;letter-spacing:-3px;color:#121212">La IA prepara el pago. Vos firmás. La cadena lo prueba.</h1>
+<p style="font-size:24px;color:#666666">HackaTwin 2026, track Stablecoins de Twin. Equipo E.</p>
+<aside class="notes">Apertura, 10 segundos. "Somos Vértice. Pagamos facturas de proveedores en pesos onchain: la IA hace el trabajo, una persona firma, y cualquiera puede verificar el pago." No expliques el producto acá: pasá directo al problema.</aside>
+</section>
+
+<section id="problema" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:64px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Pagar proveedores sigue siendo a mano. Y sale caro.</h2>
+<div style="flex:1;display:flex;flex-direction:row;gap:64px;align-items:center">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:144px;line-height:1;letter-spacing:-6px;color:#121212;font-variant-numeric:tabular-nums">30%</p>
+<p style="font-size:32px;line-height:1.35;color:#333333">de los errores en pagos son errores humanos</p>
+<p style="font-size:24px;color:#666666">[Fuente a confirmar]</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;border-left:1px solid #cccccc;padding:0 0 0 64px">
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:144px;line-height:1;letter-spacing:-6px;color:#121212;font-variant-numeric:tabular-nums">US$ [X] M</p>
+<p style="font-size:32px;line-height:1.35;color:#333333">perdidos por año en pagos mal hechos</p>
+<p style="font-size:24px;color:#666666">[Fuente a confirmar]</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#666666">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">02</p>
+<aside class="notes">20 segundos. Arrancá por el número, no por la tecnología. "Casi un 30% de los errores en pagos son humanos: alguien tipea mal un monto, paga dos veces la misma factura o transfiere a un CBU que cambió. Eso son millones de dólares por año." Antes de presentar: conseguir la fuente del 30% y el monto anual, o sacar el número. No decir una cifra sin fuente frente al jurado.</aside>
+</section>
+
+<section id="hoy" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:64px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Hoy, cada pago pasa por mails, planillas y capturas.</h2>
+<div style="display:flex;flex-direction:row;gap:16px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:32px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">01</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.2;color:#121212">Llega la factura por mail</p>
+<div style="flex:1"></div>
+<p style="font-size:24px;line-height:1.3;color:#b42318;background:#fbeae8;padding:8px 16px;border-radius:6px">Duplicada: se paga dos veces</p>
+</div>
+<svg aria-hidden="true" style="flex:none;align-self:center;width:48px;height:16px;color:#999999" viewBox="0 0 48 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 8H46M39 1l7 7-7 7"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:32px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">02</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.2;color:#121212">Se carga en una planilla</p>
+<div style="flex:1"></div>
+<p style="font-size:24px;line-height:1.3;color:#b42318;background:#fbeae8;padding:8px 16px;border-radius:6px">Monto mal tipeado</p>
+</div>
+<svg aria-hidden="true" style="flex:none;align-self:center;width:48px;height:16px;color:#999999" viewBox="0 0 48 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 8H46M39 1l7 7-7 7"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:32px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">03</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.2;color:#121212">Transferencia a mano</p>
+<div style="flex:1"></div>
+<p style="font-size:24px;line-height:1.3;color:#b42318;background:#fbeae8;padding:8px 16px;border-radius:6px">CBU cambiado sin aviso</p>
+</div>
+<svg aria-hidden="true" style="flex:none;align-self:center;width:48px;height:16px;color:#999999" viewBox="0 0 48 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 8H46M39 1l7 7-7 7"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:32px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">04</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.2;color:#121212">Captura por WhatsApp</p>
+<div style="flex:1"></div>
+<p style="font-size:24px;line-height:1.3;color:#b42318;background:#fbeae8;padding:8px 16px;border-radius:6px">El proveedor no puede verificar</p>
+</div>
+</div>
+<p style="width:1300px;font-size:32px;line-height:1.35;color:#333333">Nadie puede demostrar qué se pagó, a quién y por qué.</p>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#666666">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">03</p>
+<aside class="notes">15 segundos. Recorré la cadena de izquierda a derecha y nombrá solo el error en rojo de cada paso. Cerrá con la frase de abajo: el problema no es solo el error, es que después nadie puede probar qué pasó.</aside>
+</section>
+
+<section id="vertice" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:64px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Vértice: un pago, dos lados.</h2>
+<div style="flex:1;display:flex;flex-direction:row;gap:24px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:48px">
+<p style="font-size:24px;color:#666666">Para el comercio que paga</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.1;letter-spacing:-1px;color:#121212">Vértice OPS</h3>
+<p style="font-size:32px;line-height:1.35;color:#333333">La IA revisa las facturas y arma el lote. Vos firmás.</p>
+<div style="flex:1"></div>
+<div style="display:flex;flex-direction:row">
+<p style="font-size:24px;font-weight:600;color:#000000;background:linear-gradient(90deg, #ff6600, #ff3300);padding:16px 48px;border-radius:999px">PAGAR</p>
+</div>
+</div>
+<svg aria-hidden="true" style="flex:none;align-self:center;width:64px;height:16px;color:#999999" viewBox="0 0 64 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 8H62M55 1l7 7-7 7"/></svg>
+<div style="width:336px;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;background:#e5e5e5;border:1px solid #cccccc;border-radius:12px;padding:32px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Arbitrum</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:96px;line-height:1;letter-spacing:-3px;color:#121212">ARGt</p>
+<p style="font-size:24px;line-height:1.3;color:#333333;text-align:center">Una transacción, varios proveedores</p>
+</div>
+<svg aria-hidden="true" style="flex:none;align-self:center;width:64px;height:16px;color:#999999" viewBox="0 0 64 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M0 8H62M55 1l7 7-7 7"/></svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#121212;border:1px solid #222222;border-radius:12px;padding:48px">
+<p style="font-size:24px;color:#999999">Para el proveedor que cobra</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.1;letter-spacing:-1px;color:#f2f2f2">Vértice PROOF</h3>
+<p style="font-size:32px;line-height:1.35;color:#cccccc">Pega el hash y ve qué respalda la cadena.</p>
+<div style="flex:1"></div>
+<div style="display:flex;flex-direction:row">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#6fd39a;background:#0d2618;border:1px solid #6fd39a;padding:12px 24px;border-radius:6px">VERIFIED</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#666666">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">04</p>
+<aside class="notes">20 segundos. Esta slide resuelve la duda del instructor de que son "dos productos para dos clientes". Contalo como UNA historia: un mismo pago tiene dos lados. Del lado del comercio, la IA hace el trabajo y la persona firma. Del lado del proveedor, verifica que cobró sin confiar en una captura. Los une un solo lote en ARGt sobre Arbitrum.</aside>
+</section>
+
+<section id="flujo" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:64px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Todo es automático, salvo la firma.</h2>
+<div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:16px">
+<div style="display:flex;flex-direction:column;gap:12px;border-top:2px solid #cccccc;padding:24px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">01</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.15;color:#121212">Ingesta</p>
+<p style="font-size:24px;line-height:1.3;color:#666666">IA</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:2px solid #cccccc;padding:24px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">02</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.15;color:#121212">Revisión</p>
+<p style="font-size:24px;line-height:1.3;color:#666666">IA + reglas</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:2px solid #cccccc;padding:24px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">03</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.15;color:#121212">Informe previo</p>
+<p style="font-size:24px;line-height:1.3;color:#666666">IA + código</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:6px solid #ff3300;padding:20px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">04</p>
+<div style="display:flex;flex-direction:row">
+<p style="font-size:24px;font-weight:600;color:#000000;background:linear-gradient(90deg, #ff6600, #ff3300);padding:4px 24px;border-radius:999px">PAGAR</p>
+</div>
+<p style="font-size:24px;line-height:1.3;color:#121212">Vos, con tu wallet</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:2px solid #cccccc;padding:24px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">05</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.15;color:#121212">Verificación</p>
+<p style="font-size:24px;line-height:1.3;color:#666666">Código</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:2px solid #cccccc;padding:24px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">06</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.15;color:#121212">Comprobantes</p>
+<p style="font-size:24px;line-height:1.3;color:#666666">IA</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;border-top:2px solid #cccccc;padding:24px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">07</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;line-height:1.15;color:#121212">Cierre</p>
+<p style="font-size:24px;line-height:1.3;color:#666666">IA</p>
+</div>
+</div>
+<div style="flex:1"></div>
+<div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:24px">
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;line-height:1.1;letter-spacing:-1px;color:#121212;border-top:1px solid #121212;padding:24px 0 0 0">La IA investiga.</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;line-height:1.1;letter-spacing:-1px;color:#121212;border-top:1px solid #121212;padding:24px 0 0 0">El código decide.</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;line-height:1.1;letter-spacing:-1px;color:#121212;border-top:1px solid #121212;padding:24px 0 0 0">El contrato limita.</p>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;line-height:1.1;letter-spacing:-1px;color:#121212;border-top:1px solid #121212;padding:24px 0 0 0">La persona firma.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#666666">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">05</p>
+<aside class="notes">20 segundos. No leas los 7 pasos. Señalá el 4: "La única parte manual es esta: una persona revisa el informe y firma con su wallet. Todo lo demás lo hace el agente." Después leé la fila de abajo, que es nuestro diferencial: la IA no tiene ninguna herramienta para mover plata, el veredicto lo da código determinístico, y aunque el agente se equivoque, el contrato rechaza destinatarios no aprobados y montos por encima del tope.</aside>
+</section>
+
+<section id="ops" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Vértice OPS: el agente investiga, vos pagás.</h2>
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#000000;color:#f2f2f2;border:1px solid #222222;border-radius:20px;padding:32px 40px">
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-bottom:1px solid #222222;padding:0 0 20px 0">
+<div style="display:flex;flex-direction:row;align-items:center;gap:16px">
+<svg aria-hidden="true" style="flex:none;color:#f2f2f2;width:32px;height:32px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+<p style="font-size:32px;font-weight:600;color:#f2f2f2">VÉRTICE</p>
+<p style="font-size:24px;color:#999999">OPERATIONS</p>
+</div>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#6fd39a;background:#0d2618;padding:4px 16px;border-radius:999px">AGENT ACTIVE</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:row;gap:24px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:row;gap:16px">
+<div style="flex:1;display:flex;flex-direction:column;gap:4px;background:#222222;border-radius:12px;padding:16px 24px">
+<p style="font-size:24px;color:#cccccc">Facturas</p>
+<p style="font-size:32px;font-weight:600;color:#f2f2f2;font-variant-numeric:tabular-nums">12</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:4px;background:#222222;border-radius:12px;padding:16px 24px">
+<p style="font-size:24px;color:#cccccc">Alertas</p>
+<p style="font-size:32px;font-weight:600;color:#e2d79c;font-variant-numeric:tabular-nums">2</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:4px;background:#222222;border-radius:12px;padding:16px 24px">
+<p style="font-size:24px;color:#cccccc">Listas</p>
+<p style="font-size:32px;font-weight:600;color:#6fd39a;font-variant-numeric:tabular-nums">10</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:14px;border:1px solid #333333;border-radius:12px;padding:20px 24px">
+<div style="display:flex;flex-direction:row;align-items:center;gap:12px">
+<svg aria-hidden="true" style="flex:none;color:#cccccc;width:28px;height:28px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+<p style="font-size:24px;font-weight:600;color:#f2f2f2">Investigación del agente</p>
+</div>
+<div style="display:flex;flex-direction:row;align-items:center;gap:16px">
+<svg aria-hidden="true" style="flex:none;color:#6fd39a;width:28px;height:28px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+<p style="font-size:24px;line-height:1.3;color:#cccccc">Verificadas las condiciones comerciales del período</p>
+</div>
+<div style="display:flex;flex-direction:row;align-items:center;gap:16px">
+<svg aria-hidden="true" style="flex:none;color:#e2d79c;width:28px;height:28px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+<p style="font-size:24px;line-height:1.3;color:#cccccc">Posible duplicado en una factura de proveedor</p>
+</div>
+<div style="display:flex;flex-direction:row;align-items:center;gap:16px">
+<svg aria-hidden="true" style="flex:none;color:#e2d79c;width:28px;height:28px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+<p style="font-size:24px;line-height:1.3;color:#cccccc">Destinatario diferente al registrado históricamente</p>
+</div>
+<div style="display:flex;flex-direction:row;align-items:center;gap:16px">
+<svg aria-hidden="true" style="flex:none;color:#6fd39a;width:28px;height:28px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+<p style="font-size:24px;line-height:1.3;color:#cccccc">Lote apto excluyendo los casos pendientes</p>
+</div>
+</div>
+</div>
+<div style="width:620px;display:flex;flex-direction:column;gap:16px;border:1px solid #333333;border-radius:12px;padding:24px">
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center">
+<p style="font-size:24px;font-weight:600;color:#f2f2f2">Informe previo</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#f2f2f2;background:#222222;padding:2px 14px;border-radius:999px">ARGt</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center">
+<p style="font-size:24px;color:#cccccc">Pagos propuestos</p>
+<p style="font-size:24px;font-weight:600;color:#f2f2f2;font-variant-numeric:tabular-nums">10</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center">
+<p style="font-size:24px;color:#cccccc">Importe total ilustrativo</p>
+<p style="font-size:24px;font-weight:600;color:#f2f2f2;font-variant-numeric:tabular-nums">8.450 ARGt</p>
+</div>
+<div style="display:flex;flex-direction:row;align-items:center;gap:12px;background:#0d2618;border-radius:8px;padding:14px 20px">
+<svg aria-hidden="true" style="flex:none;color:#6fd39a;width:28px;height:28px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+<p style="font-size:24px;color:#cccccc">Preflight completado</p>
+</div>
+<div style="flex:1"></div>
+<p style="font-size:24px;font-weight:600;color:#ffffff;background:#2a7b8f;padding:20px;border-radius:12px;text-align:center">PAGAR CON WALLET</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#666666">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">06</p>
+<aside class="notes">Referencia de la pantalla real de OPS, rearmada con los estilos de la plataforma. 20 segundos. "El agente revisó 12 facturas: encontró un posible duplicado y un destinatario que no coincide con el histórico. Los separa y deja 10 pagos listos. El comerciante solo mira el informe y aprieta PAGAR CON WALLET." Ojo: el importe de 8.450 ARGt es ilustrativo (así lo dice la pantalla); el pago real onchain de la próxima slide es de 500 ARGt.</aside>
+</section>
+
+<section id="onchain" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Pago real en Arbitrum: 500 ARGt.</h2>
+<div style="flex:1;display:flex;flex-direction:row;gap:56px;align-items:start">
+<img src="assets/tx-logs.png" alt="Arbiscan, logs del recibo: Approval y Transfer de 500 ARGt del token oficial de Twin, y el evento del contrato de Vértice" style="width:1040px;height:555px;object-fit:contain;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px">
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #121212;padding:16px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Log 0</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;font-weight:400;line-height:1.2;color:#121212">Approval</h3>
+<p style="font-size:24px;line-height:1.35;color:#333333">El comercio autoriza al contrato de Vértice.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #121212;padding:16px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Log 1</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;font-weight:400;line-height:1.2;color:#121212">Transfer</h3>
+<p style="font-size:24px;line-height:1.35;color:#333333">500 ARGt del token oficial de Twin al proveedor.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #121212;padding:16px 0 0 0">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Log 2</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:32px;font-weight:400;line-height:1.2;color:#121212">Evento de Vértice</h3>
+<p style="font-size:24px;line-height:1.35;color:#333333">El contrato de lotes registra el pago.</p>
+</div>
+</div>
+</div>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#333333"><a href="https://arbiscan.io/tx/0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc">0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc</a></p>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#666666">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">07</p>
+<aside class="notes">Esta es la transacción ejecutada por el producto, que pide el reglamento. 15 segundos. "Esto no es un mock: es una transacción en Arbitrum mainnet. El contrato de Vértice movió 500 ARGt, el token oficial de Twin, al proveedor, y dejó su propio evento con el registro del pago." El hash es clickeable y abre Arbiscan. Contrato de lotes: 0x21Bf9822877502Ea7e5C2F973c0E335174763965. Proveedor: 0x981DCe900787aEd11E8e4489860907d2892f70eD.</aside>
+</section>
+
+<section id="recorrido" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Todo el recorrido queda en la cadena.</h2>
+<div style="flex:1;display:flex;flex-direction:column;gap:28px">
+<div style="display:flex;flex-direction:row;gap:56px;align-items:center">
+<img src="assets/addr-txs.png" alt="Arbiscan, transacciones de la wallet del comercio: despliegue del contrato, configuración, Approve y ejecución del lote" style="width:1000px;height:206px;object-fit:contain;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Transacciones</p>
+<p style="font-size:24px;line-height:1.35;color:#333333">Deploy del contrato, configuración, Approve y ejecución del lote.</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:row;gap:56px;align-items:center">
+<img src="assets/addr-transfers.png" alt="Arbiscan, transferencias de ARGt: entraron 2.000 ARGt y salieron 500 ARGt al proveedor" style="width:1000px;height:101px;object-fit:contain;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Movimientos de ARGt</p>
+<p style="font-size:24px;line-height:1.35;color:#333333">Entraron 2.000 ARGt. Salieron 500 al proveedor.</p>
+</div>
+</div>
+<div style="display:flex;flex-direction:row;gap:56px;align-items:center">
+<img src="assets/tx-state.png" alt="Arbiscan, diferencias de estado de la transacción: el contrato ARGt, el contrato de Vértice y la wallet del comercio" style="width:1000px;height:221px;object-fit:contain;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Cambio de estado</p>
+<p style="font-size:24px;line-height:1.35;color:#333333">Contrato ARGt oficial y gas de centavos de dólar.</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1200px;font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">Wallet del comercio: 0xA6b2Df351332dB16C43630e8290fd893E9c71513</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">08</p>
+<aside class="notes">Slide de respaldo: si no hay tiempo, pasala rápido o dejala para las preguntas. Muestra que el contrato se desplegó y se ejecutó durante el evento (sirve para el criterio de "construido hoy"): 6 transacciones de la wallet del comercio, todas de las últimas horas. El fee de la transacción del lote fue de 0,0000024 ETH.</aside>
+</section>
+
+<section id="proof" data-transition="fade" style="background:#000000;color:#f2f2f2;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:row;gap:96px;align-items:center">
+<div style="width:640px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#f2f2f2">No confíes en el comprobante. Verificá el pago.</h2>
+<p style="font-size:32px;line-height:1.35;color:#cccccc">El proveedor pega el hash. Código determinístico lee la cadena, campo por campo.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:24px;background:#fafafa;color:#121212;border-radius:12px;padding:48px 56px;box-shadow:0 2px 4px rgba(0,0,0,0.4), 0 32px 80px rgba(0,0,0,0.7)">
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:24px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<p style="font-size:24px;color:#666666">Expediente del pago</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#121212">0x704fb8b5…005cabfc</p>
+</div>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:32px;font-weight:500;color:#17653a;border:3px solid #17653a;padding:8px 24px;border-radius:6px;transform:rotate(-6deg)">VERIFIED</p>
+</div>
+<div style="display:flex;flex-direction:column">
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Red: Arbitrum</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Transacción incluida</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Ejecución exitosa</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Token: ARGt oficial</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Destinatario: 0x981D…70eD</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Monto: 500 ARGt</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">No usado en otra orden</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-top:1px solid #e5e5e5;border-bottom:1px solid #e5e5e5;padding:10px 0">
+<p style="font-size:24px;color:#333333">Vinculado a la factura</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#17653a;background:#e7f3eb;padding:2px 12px;border-radius:6px">PASS</p>
+</div>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;color:#999999">Vértice</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#999999;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">09</p>
+<aside class="notes">20 segundos. "El otro lado del pago: el proveedor no tiene que confiar en una captura. Pega el hash y cada hecho se comprueba contra la cadena." Si hay tiempo en la demo, mostrar también el caso que FALLA (otro monto u otro destinatario) para que el jurado vea el NOT VERIFIED. Si preguntan: la lectura es por RPC, no es una prueba criptográfica independiente, y lo decimos en la escalera de garantía.</aside>
+</section>
+
+<section id="twin" data-transition="fade" style="background:#f2f2f2;color:#121212;font-family:'Geist', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:64px">
+<h2 style="width:1400px;font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.12;letter-spacing:-1px;color:#121212">Por qué Twin: esto solo existe con pesos onchain.</h2>
+<div style="flex:1;display:grid;grid-template-columns:repeat(2, 1fr);gap:24px">
+<div style="display:flex;flex-direction:column;gap:16px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:40px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">01</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.1;letter-spacing:-1px;color:#121212">Un lote, una transacción</h3>
+<p style="font-size:32px;line-height:1.35;color:#333333">Varios proveedores cobran en ARGt a la vez, con su factura en el evento.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:40px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">02</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.1;letter-spacing:-1px;color:#121212">Reglas en el contrato</h3>
+<p style="font-size:32px;line-height:1.35;color:#333333">Si la IA se equivoca, el contrato rechaza el destino o el monto.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:40px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">03</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.1;letter-spacing:-1px;color:#121212">Recibos verificables</h3>
+<p style="font-size:32px;line-height:1.35;color:#333333">El proveedor lee la cadena. No depende de una captura.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:16px;background:#ffffff;border:1px solid #e5e5e5;border-radius:12px;padding:40px">
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">04</p>
+<h3 style="font-family:'Source Serif 4', Georgia, serif;font-size:56px;font-weight:400;line-height:1.1;letter-spacing:-1px;color:#121212">Autoridad acotada</h3>
+<p style="font-size:32px;line-height:1.35;color:#333333">La IA no tiene ninguna herramienta para mover plata.</p>
+</div>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1300px;font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#666666">ARGt en Arbitrum: 0x59863989d080B22476DB95656d0C3CC18be92214</p>
+<p style="position:absolute;right:128px;bottom:64px;width:200px;font-size:24px;color:#666666;text-align:right;font-family:'Geist Mono', 'Courier New', monospace">10</p>
+<aside class="notes">20 segundos. Es el criterio "Idea" del jurado: no es un sistema de pagos tradicional pasado a blockchain. Cuatro cosas que solo se pueden hacer con moneda local programable: pago en lote atómico en ARGt, reglas del comercio aplicadas por contrato, recibos que cualquiera verifica, y un agente que prepara todo pero no puede mover plata. Si preguntan por el negocio (no profundizar, lo dijo el instructor): suscripción mensual o fee por pago conciliado, y a futuro crédito usando el historial de pagos verificados. Confirmar la dirección de ARGt si al final usamos otra chain.</aside>
+</section>
+
+<section id="cierre" data-transition="fade" style="background:#121212;color:#f2f2f2;font-family:'Geist', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<div style="display:flex;flex-direction:row;align-items:center;gap:20px">
+<svg aria-label="Logo de Vértice" viewBox="0 0 100 88" width="100" height="88" style="width:56px;height:49px"><defs><linearGradient id="l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6600"/><stop offset="1" stop-color="#ff3300"/></linearGradient></defs><polygon points="50,0 100,88 0,88" fill="url(#l)"/></svg>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:44px;letter-spacing:-1px;line-height:1.1;color:#f2f2f2">Vértice</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h1 style="width:1500px;font-family:'Source Serif 4', Georgia, serif;font-size:96px;font-weight:400;line-height:1.08;letter-spacing:-3px;color:#f2f2f2">La IA hace el trabajo. La persona autoriza.</h1>
+<p style="font-family:'Source Serif 4', Georgia, serif;font-size:96px;line-height:1.08;letter-spacing:-3px;background:linear-gradient(90deg, #e2d79c, #9c8746);background-clip:text;-webkit-text-fill-color:transparent">La evidencia queda.</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:48px">
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #333333;padding:24px 0 0 0">
+<p style="font-size:24px;color:#999999">Demo</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#f2f2f2">[URL de la app]</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #333333;padding:24px 0 0 0">
+<p style="font-size:24px;color:#999999">Repositorio</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#f2f2f2">[github.com/...]</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #333333;padding:24px 0 0 0">
+<p style="font-size:24px;color:#999999">Transacción de la demo</p>
+<p style="font-family:'Geist Mono', 'Courier New', monospace;font-size:24px;color:#f2f2f2">0x704fb8b5…005cabfc</p>
+</div>
+</div>
+<aside class="notes">10 segundos. Cerrá con la frase y quedate callado un segundo antes de "gracias". Dejá esta slide de fondo durante las preguntas: tiene el link de la demo, el repo y el hash para que el jurado lo verifique. Antes de presentar: completar los tres datos.</aside>
+</section>
+
+</main>
+<p id="hint">← → para navegar · F pantalla completa · N notas · Ctrl+P exporta a PDF</p>
+<script>
+  const slides = [...document.querySelectorAll('#deck > section')];
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  function fit() {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    slides.forEach(el => el.style.transform = `translate(-50%, -50%) scale(${s})`);
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((el, k) => el.classList.toggle('on', k === i));
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) show(i + 1);
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) show(i - 1);
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    else if (e.key === 'n' || e.key === 'N') document.body.classList.toggle('show-notes');
+  });
+  document.getElementById('deck').addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    show(e.clientX > innerWidth / 2 ? i + 1 : i - 1);
+  });
+  const hint = document.getElementById('hint');
+  const hideHint = () => hint.hidden = true;
+  setTimeout(hideHint, 4000);
+  addEventListener('keydown', hideHint, { once: true });
+  fit(); show(i);
+</script>
+</body>
+</html>
