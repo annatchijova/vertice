@@ -5,6 +5,22 @@
 **Método:** Red-Team Auditing + Abductive Engineering.  
 **Alcance:** `mcp_server.py` y la frontera agente → MCP → RPC → verificador.
 
+**Addendum 2026-11-07 (Claude):** el RPC 403 que impidió probar `verify_payment` en vivo
+era un bug real, no una limitación del entorno — `urllib` manda el User-Agent
+`Python-urllib/3.x` por defecto y Cloudflare lo bloquea con el error 1010; confirmado
+reproduciendo el mismo request con `curl` (200 OK) y con un User-Agent de navegador (200
+OK). Arreglado agregando un header `User-Agent` explícito en `_rpc`. Con eso resuelto,
+MCP-002, MCP-003 y MCP-004 se verificaron en vivo y se corrigieron en el mismo commit:
+`verify_payment` ahora llama a `eth_chainId` y rechaza una red distinta a 42161,
+calcula `observedConfirmations` vía `eth_blockNumber` y exige `REQUIRED_CONFIRMATIONS`
+antes de confiar en un receipt, y selecciona el único par `(PaymentExecuted, Transfer)`
+que coincide con `(runId, invoiceRef)` reclamados en vez de quedarse con el último
+match del loop — cero o más de un par compatible ahora es `INSUFFICIENT_EVIDENCE`, no un
+veredicto. Reverificado contra la transacción real de VÉRTICE
+(`0x704fb8b5…cabfc`): `VERIFIED` con 21969+ confirmaciones observadas, y `NOT_VERIFIED`
+cuando se afirma un monto incorrecto. MCP-001 (sandbox), MCP-005 (límites de entrada) y
+MCP-006 (prompt injection) siguen abiertos — no se tocaron.
+
 ## Respuesta corta: ¿el agente tiene sandbox?
 
 No por efecto de este repositorio.

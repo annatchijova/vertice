@@ -38,6 +38,10 @@ HASH_RE = re.compile(r"^0x[a-fA-F0-9]{64}$")
 TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 PAYMENT_EXECUTED_TOPIC = "0xfa59547ec40fa46063982f8fc7bc22012824f80185f15b2aec111c6b2fb7bf81"
 
+# Bound, not proof: Arbitrum has fast soft confirmation but is not instantly
+# final. This mirrors web/src/chain.ts's REQUIRED_CONFIRMATIONS.
+REQUIRED_CONFIRMATIONS = 1
+
 
 def _error(code: str, message: str, **extra: Any) -> dict[str, Any]:
     return {"ok": False, "error": code, "message": message, **extra}
@@ -205,6 +209,14 @@ def verify_payment(
     Returns VERIFIED, NOT_VERIFIED, or INSUFFICIENT_EVIDENCE. The function is
     read-only and derives facts from RPC logs rather than trusting a claim.
     Amount and identifiers use raw 18-decimal/base-unit representations.
+
+    Binds the connected RPC to the configured chain and requires
+    REQUIRED_CONFIRMATIONS before trusting a receipt (a bound, not a proof,
+    of finality). When a transaction's logs contain more than one candidate
+    PaymentExecuted or ARGt Transfer (a multi-payment batch), this selects
+    only the pair whose (runId, invoiceRef) matches the claim and whose
+    Transfer agrees with that specific PaymentExecuted's recipient/amount —
+    it never silently keeps "the last match".
     """
     try:
         tx_hash = _require_hash(transaction_hash)
@@ -214,48 +226,84 @@ def verify_payment(
         expected_amount = int(amount)
         expected_invoice = _bytes32_topic(invoice_ref)
         expected_run = _bytes32_topic(run_id)
+
+        rpc_chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
+        if rpc_chain_id != CHAIN_ID:
+            return {
+                "ok": True,
+                "verdict": "INSUFFICIENT_EVIDENCE",
+                "reason": f"connected RPC reports chain {rpc_chain_id}, expected {CHAIN_ID}",
+            }
+
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt unavailable"}
         if _quantity(receipt.get("status", "0x0"), "status") != 1:
             return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction reverted"}
 
-        transfer = None
-        payment = None
+        receipt_block = _quantity(receipt["blockNumber"], "receipt.blockNumber")
+        head_block = _quantity(_rpc("eth_blockNumber", []), "headBlockNumber")
+        observed_confirmations = head_block - receipt_block + 1
+        if observed_confirmations < REQUIRED_CONFIRMATIONS:
+            return {
+                "ok": True,
+                "verdict": "INSUFFICIENT_EVIDENCE",
+                "reason": "below required confirmation depth",
+                "observedConfirmations": observed_confirmations,
+                "requiredConfirmations": REQUIRED_CONFIRMATIONS,
+            }
+
+        transfers: list[dict[str, Any]] = []
+        payments: list[dict[str, Any]] = []
         for log in receipt.get("logs", []):
             topics = log.get("topics", [])
             address = str(log.get("address", "")).lower()
             if topics and topics[0].lower() == TRANSFER_TOPIC and address == ARGT_ADDRESS and len(topics) == 3:
-                transfer = {
+                transfers.append({
                     "token": address,
                     "sender": _word_address(topics[1]),
                     "recipient": _word_address(topics[2]),
                     "amount": _word_uint(log.get("data", "")),
-                }
+                })
             if (
                 topics
                 and topics[0].lower() == PAYMENT_EXECUTED_TOPIC
                 and address == PAYMENT_BATCH_ADDRESS
                 and len(topics) == 4
             ):
-                payment = {
+                payments.append({
                     "runId": topics[1].lower(),
                     "invoiceRef": topics[2].lower(),
                     "recipient": _word_address(topics[3]),
                     "amount": _word_uint(log.get("data", "")),
-                }
+                })
 
-        if transfer is None or payment is None:
+        matching_payments = [p for p in payments if p["runId"] == expected_run and p["invoiceRef"] == expected_invoice]
+        if len(matching_payments) != 1:
             return {
                 "ok": True,
                 "verdict": "INSUFFICIENT_EVIDENCE",
-                "reason": "required ARGt Transfer or PaymentExecuted log not found",
-                "transferFound": transfer is not None,
-                "paymentExecutedFound": payment is not None,
+                "reason": "expected exactly one PaymentExecuted log matching (runId, invoiceRef)",
+                "matchingPaymentExecutedCount": len(matching_payments),
             }
+        payment = matching_payments[0]
+
+        matching_transfers = [
+            t for t in transfers if t["recipient"] == payment["recipient"] and t["amount"] == payment["amount"]
+        ]
+        if len(matching_transfers) != 1:
+            return {
+                "ok": True,
+                "verdict": "INSUFFICIENT_EVIDENCE",
+                "reason": "expected exactly one ARGt Transfer matching the PaymentExecuted recipient/amount",
+                "matchingTransferCount": len(matching_transfers),
+            }
+        transfer = matching_transfers[0]
 
         checks = {
             "transactionSucceeded": True,
+            "chainId": rpc_chain_id == CHAIN_ID,
+            "confirmations": observed_confirmations >= REQUIRED_CONFIRMATIONS,
             "token": transfer["token"] == ARGT_ADDRESS,
             "runId": payment["runId"] == expected_run,
             "invoiceRef": payment["invoiceRef"] == expected_invoice,
@@ -269,6 +317,7 @@ def verify_payment(
             "verdict": verdict,
             "transactionHash": tx_hash,
             "chainId": CHAIN_ID,
+            "observedConfirmations": observed_confirmations,
             "checks": checks,
             "transfer": transfer,
             "paymentExecuted": payment,
