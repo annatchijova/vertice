@@ -3,6 +3,7 @@ import { INVOICES } from "@/data/invoices";
 import { formatAmount, formatBlock, formatDateTimeLong } from "@/domain/format";
 import { AUTO_EXECUTION_THRESHOLD } from "@/domain/policy";
 import { DEPLOYMENTS, addressUrl, txUrl } from "@/infrastructure/chain/contracts";
+import { Logo } from "@/components/Logo";
 import { AnatomyFigure } from "./figures/AnatomyFigure";
 import { HeroFigure } from "./figures/HeroFigure";
 import { MiniOps } from "./MiniOps";
@@ -24,17 +25,6 @@ const FIRST = firstPayment();
 const TX = FIRST.executed;
 const ARGT = DEPLOYMENTS.ARGt;
 const AUTO = formatAmount(AUTO_EXECUTION_THRESHOLD).replace(/,00$/, "");
-
-function Logo() {
-  return (
-    <Link className="lp-logo" href="/" aria-label="Vértice, inicio">
-      <svg viewBox="0 0 24 22" width="20" height="18" aria-hidden="true">
-        <path d="M12 1 23 21H1Z" fill="url(#lp-brand)" />
-      </svg>
-      <span>Vértice</span>
-    </Link>
-  );
-}
 
 const Ext = ({ href, className, children }: { href: string; className?: string; children: React.ReactNode }) => (
   <a className={className} href={href} target="_blank" rel="noopener noreferrer">{children}</a>
@@ -58,19 +48,10 @@ const FAQ: [string, React.ReactNode][] = [
 export function Landing() {
   return (
     <div className="lp" id="inicio">
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true" focusable="false">
-        <defs>
-          <linearGradient id="lp-brand" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0" stopColor="#ff6600" />
-            <stop offset="1" stopColor="#ff3300" />
-          </linearGradient>
-        </defs>
-      </svg>
-
       <header className="lp-band" data-theme="dark">
         <div className="lp-wrap">
           <nav className="lp-nav" aria-label="Principal">
-            <Logo />
+            <Logo className="lp-logo" />
             <ul className="lp-nav__links">
               <li><a href="#como">Cómo funciona</a></li>
               <li><a href="#prueba">Prueba</a></li>
@@ -187,7 +168,7 @@ export function Landing() {
       </main>
 
       <footer className="lp-wrap lp-foot">
-        <Logo />
+        <Logo className="lp-logo" />
         <small>HackaTwin 2026 · Track Stablecoins · Equipo Mixto E</small>
       </footer>
     </div>

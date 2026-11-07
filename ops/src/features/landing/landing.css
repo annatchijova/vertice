@@ -18,7 +18,7 @@
 
 /* nav */
 .lp-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; }
-.lp-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 400 21px/1 var(--font-serif); letter-spacing: -.01em; }
+.lp-logo { color: var(--ink-900); }
 .lp-nav__links { display: flex; gap: 32px; list-style: none; margin: 0; padding: 0; }
 .lp .lp-nav__links a { font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-500); text-decoration: none; }
 .lp .lp-nav__links a:hover { color: var(--ink-900); }

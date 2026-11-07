@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { EXTERNAL_LINKS } from "@/infrastructure/chain/contracts";
+import { Logo } from "./Logo";
 
 /** Header compartido: logo (único lugar con el gradiente naranja junto a PAGAR) + acción opcional a la derecha. */
 export function OpsHeader({ right, product = "OPS" }: { right?: React.ReactNode; product?: "OPS" | "PROOF" }) {
@@ -10,19 +11,7 @@ export function OpsHeader({ right, product = "OPS" }: { right?: React.ReactNode;
         alignItems: "center", justifyContent: "space-between", gap: 16,
       }}
     >
-      <Link href={product === "OPS" ? "/ops" : "/proof"} style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-        <svg width="20" height="18" viewBox="0 0 24 22" aria-hidden="true">
-          <defs>
-            <linearGradient id="vx-logo-g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#ff6600" />
-              <stop offset="1" stopColor="#ff3300" />
-            </linearGradient>
-          </defs>
-          <path d="M12 1 L23 21 H1 Z" fill="url(#vx-logo-g)" />
-        </svg>
-        <span className="vx-serif" style={{ fontSize: 20, color: "var(--ink-900)" }}>Vértice</span>
-        <span className="vx-label" style={{ paddingLeft: 4 }}>{product}</span>
-      </Link>
+      <Logo href={product === "OPS" ? "/ops" : "/proof"} product={product} />
       <nav style={{ display: "flex", alignItems: "center", gap: 20 }}>
         <ExternalNavLinks showProof={product === "OPS"} />
         {product === "PROOF" && (
