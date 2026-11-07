@@ -1,6 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VÉRTICE">
-  <rect width="64" height="64" rx="10" fill="#1A1410"/>
-  <rect x="9" y="9" width="46" height="46" rx="4" fill="none" stroke="#F6F3EF" stroke-width="3"/>
-  <rect x="14" y="14" width="36" height="36" rx="2" fill="none" stroke="#F6F3EF" stroke-width="1.5"/>
-  <path d="M32 16 L48 48 L16 48 Z" fill="none" stroke="#FF7A33" stroke-width="5" stroke-linejoin="miter"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="VÉRTICE PROOF">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6600"/>
+      <stop offset="1" stop-color="#ff3300"/>
+    </linearGradient>
+  </defs>
+  <!-- PROOF: la marca "Par" sobre el escritorio negro. Mitad izquierda = IA (gradiente), derecha = persona (claro). -->
+  <rect width="48" height="48" rx="10" fill="#000"/>
+  <path d="M8 11 H22.75 V28 L24 30.2 V39 Z" fill="url(#g)"/>
+  <path d="M25.25 11 H40 L24 39 V30.2 L25.25 28 Z" fill="#f2f2f2"/>
 </svg>

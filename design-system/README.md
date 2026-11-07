@@ -87,7 +87,20 @@ Los estados del dominio corresponden 1:1 con las clases: `PENDING` → `pending`
 
 ## Logo
 
-Todavía no hay logo (es la tarea 5). Mientras tanto se usa la palabra "Vértice" en serif junto a un triángulo con el gradiente de marca. Ese triángulo es el único otro lugar donde aparece el gradiente.
+La marca es **"Par"**: una V equilátera partida por una ranura de un trazo que no llega al fondo. La mitad izquierda lleva el gradiente `brand-2` → `brand` (la IA que hace el trabajo); la derecha va en tinta (`ink-900`, la persona que autoriza). Las dos mitades se tocan solo en el vértice. Es, junto con PAGAR, el único lugar donde aparece el gradiente.
+
+**Construcción.** Grilla de 48 unidades. Triángulo equilátero invertido con el lado superior en `y=9` (de `x=6` a `x=42`) y el vértice en `(24, 40.2)`. Ranura de 3 u centrada en `x=24`, desde arriba hasta `y=28`; de ahí las mitades convergen y se funden. El ápice baja 1 u del centro geométrico para compensar que un triángulo invertido "flota".
+
+```svg
+<path d="M6 9 H22.5 V28 L24 30.6 V40.2 Z" fill="url(#brand)"/>
+<path d="M25.5 9 H42 L24 40.2 V30.6 L25.5 28 Z" fill="currentColor"/>
+```
+
+**Lockup.** Símbolo + `VÉRTICE` en `sans` 500, tracking +0.14em, con el sufijo `OPS` / `PROOF` en estilo `label`. El símbolo mide la altura de la mayúscula × 1.5 y se separa del wordmark 10 px (≈ un trazo). Zona de protección: la mitad del ancho del símbolo en todos los lados.
+
+**Versiones.** Claro: tinta `#121212`. Oscuro: la mitad derecha pasa a `#f2f2f2` (hereda `currentColor`). Monocromo: las dos mitades en tinta; la ranura sigue contando la historia. Favicon (16 px): ranura de 5 u (`ops/src/app/icon.svg`, `web/public/favicon.svg`).
+
+**Fuente.** `ops/src/components/Logo.tsx` (`LogoMark` y `Logo`). No se redibuja en cada pantalla: se importa.
 
 ## Uso en el repo
 

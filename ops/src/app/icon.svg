@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="VÉRTICE">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6600"/>
+      <stop offset="1" stop-color="#ff3300"/>
+    </linearGradient>
+  </defs>
+  <!-- Favicon: ranura más ancha (5 u) para que se lea a 16 px. Tinta sobre transparente; en pestañas oscuras el navegador no invierte, por eso la mitad derecha es #121212 fijo. -->
+  <path d="M2 6 H21.5 V26 L24 30 V44 Z" fill="url(#g)"/>
+  <path d="M26.5 6 H46 L24 44 V30 L26.5 26 Z" fill="#121212"/>
+</svg>
