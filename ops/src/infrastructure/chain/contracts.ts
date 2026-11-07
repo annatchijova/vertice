@@ -5,10 +5,17 @@ export const CHAIN_ID = 42161;
 export const ARBISCAN = "https://arbiscan.io";
 export const PROOF_URL = "https://vertice-proof.vercel.app";
 
+/** Hash de la primera transacción real del producto (500 ARGt a un proveedor aprobado). */
+export const REAL_TX_HASH = "0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc";
+
 /** OPS es la demo con datos mock; estos links llevan a lo que es real o a material aparte. */
 export const EXTERNAL_LINKS = {
   proof: PROOF_URL,
   github: "https://github.com/annatchijova/vertice",
+  /** PaymentBatch de ARGt en Arbiscan — el contrato real, no una captura. */
+  contract: `${ARBISCAN}/address/0x21Bf9822877502Ea7e5C2F973c0E335174763965`,
+  /** La transacción real en Arbiscan. */
+  transaction: `${ARBISCAN}/tx/${REAL_TX_HASH}`,
   /** null hasta que las slides tengan URL; el header no renderiza el link mientras tanto. */
   slides: null as string | null,
 };

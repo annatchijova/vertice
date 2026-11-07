@@ -2,7 +2,7 @@ import Link from "next/link";
 import { INVOICES } from "@/data/invoices";
 import { formatAmount, formatBlock, formatDateTimeLong } from "@/domain/format";
 import { AUTO_EXECUTION_THRESHOLD } from "@/domain/policy";
-import { DEPLOYMENTS, addressUrl, txUrl } from "@/infrastructure/chain/contracts";
+import { DEPLOYMENTS, EXTERNAL_LINKS, addressUrl, txUrl } from "@/infrastructure/chain/contracts";
 import { Logo } from "@/components/Logo";
 import { AnatomyFigure } from "./figures/AnatomyFigure";
 import { HeroFigure } from "./figures/HeroFigure";
@@ -56,6 +56,9 @@ export function Landing() {
               <li><a href="#como">Cómo funciona</a></li>
               <li><a href="#prueba">Prueba</a></li>
               <li><a href="#preguntas">Preguntas</a></li>
+              <li><Ext href={EXTERNAL_LINKS.github}>GitHub ↗</Ext></li>
+              <li><Ext href={EXTERNAL_LINKS.contract}>Contrato ↗</Ext></li>
+              <li><Ext href={EXTERNAL_LINKS.transaction}>Transacción ↗</Ext></li>
             </ul>
             <div className="lp-nav__cta">
               <Link className="lp-pill lp-pill--line lp-pill--sm" href="/proof">Verificar un pago</Link>

@@ -41,6 +41,12 @@ function ExternalNavLinks({ showProof }: { showProof: boolean }) {
       <a href={EXTERNAL_LINKS.github} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
         GitHub ↗
       </a>
+      <a href={EXTERNAL_LINKS.contract} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
+        Contrato ↗
+      </a>
+      <a href={EXTERNAL_LINKS.transaction} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
+        Transacción ↗
+      </a>
       {EXTERNAL_LINKS.slides && (
         <a href={EXTERNAL_LINKS.slides} target="_blank" rel="noopener noreferrer" className="vx-label" style={linkStyle}>
           Slides ↗
