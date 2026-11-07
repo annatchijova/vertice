@@ -1,0 +1,2 @@
+# Keep interface entrypoints and local visual previews out of GitHub's language chart.
+*.html linguist-detectable=false
