@@ -47,12 +47,19 @@ rechaza la operación.
 - Red objetivo: **Arbitrum One** (chain ID `42161`).
 - Dirección del contrato ARGt en Arbitrum: `0x59863989d080b22476db95656d0c3cc18be92214`
   (fuente: [stablecoins.twin.finance](https://stablecoins.twin.finance/)).
-- Dirección del contrato `PaymentBatch`: pendiente de despliegue; se publicará aquí
-  junto con el hash de la primera transacción real ejecutada por el producto.
+- Dirección del contrato `PaymentBatch`:
+  [`0x21Bf9822877502Ea7e5C2F973c0E335174763965`](https://arbiscan.io/address/0x21Bf9822877502Ea7e5C2F973c0E335174763965)
+- Dirección del contrato `PaymentReceiptRegistry`:
+  [`0xc07e0a1854676AaA05F769D6f21db89F9B9487D9`](https://arbiscan.io/address/0xc07e0a1854676AaA05F769D6f21db89F9B9487D9)
 
 Arbitrum se eligió por ser la red donde Twin Finance tiene liquidez y resto de
 infraestructura activa para ARGt (pool en Curve, vault en Morpho) al momento de este
 desarrollo. Avalanche no tiene un despliegue de ARGt publicado por Twin Finance.
+
+### Transacción real
+
+Primer pago ejecutado por el producto, 500 ARGt a un proveedor aprobado:
+[`0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc`](https://arbiscan.io/tx/0x704fb8b5c104bf4e6f1b8f33140ca6079c53516741e0fe99d45b745c005cabfc)
 
 ## Estructura del repositorio
 
@@ -92,8 +99,8 @@ Proyecto en etapa inicial (P0). Hechos: `PaymentBatch` (allowlist de destinatari
 por lote, protección contra reuso de `runId`, sin custodia de fondos) y el verificador
 determinístico `PaymentVerifier` + `PaymentReceiptRegistry` (nivel de garantía
 `RPC_ATTESTED`, como en Veridra). 41/41 tests pasan, incluyendo fuzzing y un test
-adversarial de reentrancy. Pendiente: despliegue en Arbitrum, backend/API, servidor MCP
-y frontend.
+adversarial de reentrancy. Desplegado en Arbitrum mainnet con una transacción real
+ejecutada (ver arriba). Pendiente: backend/API, servidor MCP y frontend.
 
 ## Licencia
 
