@@ -44,19 +44,38 @@ rechaza la operación.
 ## Red y token
 
 - Token: **ARGt** (Twin Stablecoin, peso argentino on-chain).
-- Red objetivo: **Avalanche**.
-- Dirección del contrato del token y del contrato `PaymentBatch`: pendiente de
-  confirmación con los mentores de Twin Finance y de publicación aquí una vez
-  desplegado.
+- Red objetivo: **Arbitrum One** (chain ID `42161`).
+- Dirección del contrato ARGt en Arbitrum: `0x59863989d080b22476db95656d0c3cc18be92214`
+  (fuente: [stablecoins.twin.finance](https://stablecoins.twin.finance/)).
+- Dirección del contrato `PaymentBatch`: pendiente de despliegue; se publicará aquí
+  junto con el hash de la primera transacción real ejecutada por el producto.
 
-Este repositorio se actualizará con la dirección exacta del par (chain ID, dirección de
-contrato) y con el hash de cada transacción real ejecutada por el producto en cuanto
-existan.
+Arbitrum se eligió por ser la red donde Twin Finance tiene liquidez y resto de
+infraestructura activa para ARGt (pool en Curve, vault en Morpho) al momento de este
+desarrollo. Avalanche no tiene un despliegue de ARGt publicado por Twin Finance.
+
+## Estructura del repositorio
+
+```
+vertice/
+├── src/            # contratos Solidity (PaymentBatch y soporte)
+├── test/           # tests unitarios, de invariantes y adversariales (Foundry)
+├── script/         # scripts de despliegue
+└── lib/            # dependencias (forge-std)
+```
+
+## Desarrollo
+
+Requiere [Foundry](https://book.getfoundry.sh/).
+
+```shell
+forge build
+forge test
+```
 
 ## Estado actual
 
-Proyecto en etapa inicial (P0). Todavía no hay contratos desplegados ni backend
-publicado en este repositorio. El primer hito es el contrato `PaymentBatch`
+Proyecto en etapa inicial (P0). El primer hito es el contrato `PaymentBatch`
 (allowlist de destinatarios, tope por lote, protección contra reuso de `runId`) junto
 con el verificador determinístico de eventos `Transfer` y `PaymentExecuted`.
 
