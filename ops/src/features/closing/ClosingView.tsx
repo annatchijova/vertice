@@ -8,7 +8,8 @@ import { AUTO_EXECUTION_THRESHOLD } from "@/domain/policy";
 import { formatAmount, formatBlock, shortAddr, shortHash } from "@/domain/format";
 import type { Invoice } from "@/domain/invoice";
 import { useChainSnapshot } from "@/infrastructure/chain/useChainSnapshot";
-import { OPERATIVE_WALLET, PROOF_URL, txUrl } from "@/infrastructure/chain/contracts";
+import { OPERATIVE_WALLET, txUrl } from "@/infrastructure/chain/contracts";
+import { invoiceProofHref } from "@/features/proof/claim";
 import {
   PATH_LABEL, amountsByCurrency, buildClosing, downloadCsv, joinAmounts, mailtoFor, shortName, signerLabel,
   type Closing, type CurrencyTotals, type PendingRow,
@@ -231,10 +232,10 @@ function Receipts({ closing }: { closing: Closing }) {
                   <span className={`vx-badge vx-badge--${r.verified ? "verified" : "pending"}`}>{r.verified ? "Verified" : "Pending"}</span>
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-                  <a href={PROOF_URL} target="_blank" rel="noreferrer" className="t-small" style={{ fontWeight: 500 }}>
+                  <Link href={invoiceProofHref(r.invoice, r.txHash, r.runId)} className="t-small" style={{ fontWeight: 500 }}>
                     Link a PROOF
-                  </a>
-                  <a href={mailtoFor(r)} className="vx-badge vx-badge--pending" style={{ textDecoration: "none" }} title="Abre tu cliente de mail con el comprobante">
+                  </Link>
+                  <a href={mailtoFor(r)} onClick={(e) => { e.currentTarget.href = mailtoFor(r); }} className="vx-badge vx-badge--pending" style={{ textDecoration: "none" }} title="Abre tu cliente de mail con el comprobante">
                     Mail preparado
                   </a>
                 </div>

@@ -5,7 +5,8 @@ import { useState, type ComponentType } from "react";
 import { formatAmount, formatBlock, formatDateTime, shortAddr, shortHash } from "@/domain/format";
 import { AUTO_EXECUTION_THRESHOLD } from "@/domain/policy";
 import { REASON_LABEL, type CurrencyState, type Preflight } from "@/domain/preflight";
-import { DEPLOYMENTS, OPERATIVE_WALLET, PROOF_URL, addressUrl, txUrl } from "@/infrastructure/chain/contracts";
+import { DEPLOYMENTS, OPERATIVE_WALLET, addressUrl, txUrl } from "@/infrastructure/chain/contracts";
+import { invoiceProofHref } from "@/features/proof/claim";
 import { PayButton } from "@/features/pay/PayButton";
 import {
   Actions, AddressDiff, Amount, ArticleHeader, Footer, Mono, MonthsGrid, Note, PathBoxes, PaymentDl, Section, dayMonth, monthName,
@@ -79,7 +80,9 @@ function Andina1042({ pf, st, label }: NarrativeProps) {
       <Footer row>
         <span className="t-small">Comprobante listo para el proveedor.</span>
         <Actions>
-          <a href={PROOF_URL} target="_blank" rel="noreferrer" className="vx-btn vx-btn--primary">Abrir en PROOF</a>
+          {txHash && (
+            <Link href={invoiceProofHref(inv, txHash, ex?.runId ?? pf.payment?.runId)} className="vx-btn vx-btn--primary">Abrir en PROOF</Link>
+          )}
           <Link href="/ops/cierre" className="vx-btn vx-btn--ghost">Ver en el cierre</Link>
         </Actions>
       </Footer>
@@ -157,7 +160,9 @@ function Andina1043({ pf, st, label, refetch }: NarrativeProps) {
           <Footer row>
             <span className="t-small">Comprobante listo para el proveedor.</span>
             <Actions>
-              <a href={PROOF_URL} target="_blank" rel="noreferrer" className="vx-btn vx-btn--primary">Abrir en PROOF</a>
+              {txHash && (
+                <Link href={invoiceProofHref(inv, txHash, pf.payment?.runId)} className="vx-btn vx-btn--primary">Abrir en PROOF</Link>
+              )}
               <Link href="/ops/cierre" className="vx-btn vx-btn--ghost">Ver en el cierre</Link>
             </Actions>
           </Footer>

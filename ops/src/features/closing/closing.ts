@@ -4,7 +4,8 @@ import type { ChainSnapshot, ExceptionReason, Path, Preflight } from "@/domain/p
 import { REASON_LABEL } from "@/domain/preflight";
 import { AUTO_EXECUTION_THRESHOLD } from "@/domain/policy";
 import { formatAmount, shortAddr } from "@/domain/format";
-import { OPERATIVE_WALLET, PROOF_URL, txUrl } from "@/infrastructure/chain/contracts";
+import { OPERATIVE_WALLET, txUrl } from "@/infrastructure/chain/contracts";
+import { invoiceProofHref } from "@/features/proof/claim";
 
 /** Comprobante de un pago ya ejecutado (fixture real o PaymentExecuted leído en vivo). */
 export type PaidRow = {
@@ -196,7 +197,7 @@ export function mailtoFor(r: PaidRow): string {
     `Destinatario: ${inv.payTo}`,
     `Transacción en Arbitrum One: ${txUrl(r.txHash)}`,
     `Bloque: ${r.blockNumber.toString()}`,
-    `Verificación: ${PROOF_URL}`,
+    `Verificación: ${typeof window === "undefined" ? "" : window.location.origin}${invoiceProofHref(inv, r.txHash, r.runId)}`,
     "",
     "Saludos.",
   ].join("\n");
