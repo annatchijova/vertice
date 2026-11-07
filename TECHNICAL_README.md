@@ -113,7 +113,14 @@ una persona lo revise, siguiendo el mismo principio del resto del producto.
 - `VÉRTICE OPS` (`ops/`) está desplegado pero usa **datos mock** (facturas de ejemplo),
   salvo las lecturas on-chain reales que sí hace en vivo (topes, allowlist, saldo,
   pagos ya ejecutados). El botón PAGAR sí firma una transacción real con tu wallet.
-- No hay cierre contable, CSV ni envío de comprobantes por mail implementados.
+- El cierre SÍ está implementado: `/ops/cierre` (`ops/src/features/closing/`) arma
+  totales por moneda y camino (auto / firma / excepción), exporta un **CSV real**
+  (`downloadCsv`/`toCsv`, botón en la vista) y genera un **link `mailto:`** por
+  comprobante (`mailtoFor`) que abre el cliente de mail del comerciante con el
+  comprobante ya armado — no envía el mail solo, la persona sigue apretando "enviar",
+  mismo principio de autoría humana que el resto del producto. Lo que no existe es un
+  cierre contable/fiscal formal (asientos, libro IVA, etc.) — esto es un cierre
+  operativo, no reemplaza obligaciones contables.
 - El nivel de garantía de `VÉRTICE PROOF` y de `verify_payment` es `RPC_ATTESTED`: una
   sola fuente RPC, consistente internamente, pero no probada criptográficamente de
   forma independiente. Decirlo así, no como "verificación trustless".
