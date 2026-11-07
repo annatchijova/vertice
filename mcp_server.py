@@ -23,6 +23,10 @@ mcp = FastMCP("vertice-readonly")
 
 RPC_URL = os.environ.get("ARBITRUM_RPC_URL", "https://arb1.arbitrum.io/rpc")
 CHAIN_ID = 42161
+
+# Bound, not proof: Arbitrum has fast soft confirmation but is not instantly
+# final. Default of 12 blocks is a conservative margin, not a derived
+# finality guarantee.
 MIN_CONFIRMATIONS = int(os.environ.get("VERTICE_MIN_CONFIRMATIONS", "12"))
 MAX_RPC_RESPONSE_BYTES = 2_000_000
 MAX_POLICY_BYTES = 64_000
@@ -30,15 +34,54 @@ MAX_INVOICE_FILE_BYTES = 1_000_000
 MAX_INVOICES = 500
 MAX_FIELD_LENGTH = 256
 MAX_UINT256_DECIMAL_DIGITS = 78
-ARGT_ADDRESS = os.environ.get(
-    "ARGT_ADDRESS", "0x59863989d080b22476db95656d0c3cc18be92214"
-).lower()
-PAYMENT_BATCH_ADDRESS = os.environ.get(
-    "PAYMENT_BATCH_ADDRESS", "0x21bf9822877502ea7e5c2f973c0e335174763965"
-).lower()
-RECEIPT_REGISTRY_ADDRESS = os.environ.get(
-    "PAYMENT_RECEIPT_REGISTRY_ADDRESS", "0xc07e0a1854676aaa05f769d6f21db89f9b9487d9"
-).lower()
+
+# Each Twin Stablecoin gets its own PaymentBatch deployment (the contract's
+# token address is fixed at construction) but can share one
+# PaymentReceiptRegistry, since a Claim already names its paymentBatchContract
+# explicitly. Env var names keep the original ARGT_*/PAYMENT_* names for
+# ARGt so existing deployments/configuration are not broken by this change.
+DEFAULT_CURRENCY = "ARGt"
+CURRENCIES: dict[str, dict[str, str]] = {
+    "ARGt": {
+        "token": os.environ.get(
+            "ARGT_ADDRESS", "0x59863989d080b22476db95656d0c3cc18be92214"
+        ).lower(),
+        "paymentBatch": os.environ.get(
+            "PAYMENT_BATCH_ADDRESS", "0x21bf9822877502ea7e5c2f973c0e335174763965"
+        ).lower(),
+        "receiptRegistry": os.environ.get(
+            "PAYMENT_RECEIPT_REGISTRY_ADDRESS",
+            "0xc07e0a1854676aaa05f769d6f21db89f9b9487d9",
+        ).lower(),
+    },
+    "BRAt": {
+        "token": os.environ.get(
+            "BRAT_ADDRESS", "0xc4ed6aba5373d78e160f4df39e011f078be54df8"
+        ).lower(),
+        "paymentBatch": os.environ.get(
+            "BRAT_PAYMENT_BATCH_ADDRESS", "0xb6653422431c5419df650d38d3b90c29f3a947ca"
+        ).lower(),
+        "receiptRegistry": os.environ.get(
+            "BRAT_PAYMENT_RECEIPT_REGISTRY_ADDRESS",
+            "0xe7271fbcc7f22a21485331d4581f6a8c7f6745c7",
+        ).lower(),
+    },
+}
+
+# Backward-compatible module-level aliases for the default currency (ARGt).
+# test_mcp_server.py and any external caller written against the earlier
+# single-currency surface keeps working unchanged.
+ARGT_ADDRESS = CURRENCIES["ARGt"]["token"]
+PAYMENT_BATCH_ADDRESS = CURRENCIES["ARGt"]["paymentBatch"]
+RECEIPT_REGISTRY_ADDRESS = CURRENCIES["ARGt"]["receiptRegistry"]
+
+
+def _currency(symbol: str) -> dict[str, str]:
+    entry = CURRENCIES.get(symbol)
+    if entry is None:
+        raise ValueError(f"unknown currency {symbol!r}; configured: {sorted(CURRENCIES)}")
+    return entry
+
 
 ADDRESS_RE = re.compile(r"^0x[a-fA-F0-9]{40}$")
 HASH_RE = re.compile(r"^0x[a-fA-F0-9]{64}$")
@@ -73,7 +116,15 @@ def _rpc(method: str, params: list[Any]) -> Any:
     request = urllib.request.Request(
         RPC_URL,
         data=payload,
-        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            # Arbitrum's public RPC sits behind Cloudflare, which returns a
+            # bare 403 (error code 1010) for urllib's default User-Agent
+            # ("Python-urllib/3.x"). Confirmed empirically: identical request
+            # succeeds with curl and with any ordinary browser-shaped UA.
+            "User-Agent": "Mozilla/5.0 (compatible; VerticeMCP/1.0)",
+        },
         method="POST",
     )
     try:
@@ -105,15 +156,38 @@ def _bytes32_topic(topic: str) -> str:
     return _require_hash(topic, "bytes32 topic")
 
 
-def _load_policy() -> dict[str, Any]:
+def _typo_match(recipient: str, approved: set[str]) -> dict[str, Any] | None:
+    """If `recipient` isn't approved but differs from exactly one approved
+    address by only 1-2 characters at fixed positions, treat it as a likely
+    typo rather than a generic "not approved" — same idea the OPS frontend's
+    `typoDiff` already applies per-invoice against a known supplier address,
+    generalized here to scan the whole approved-recipients allowlist. Two or
+    more approved addresses within the distance bound is treated as no match
+    (ambiguous, not a confident suggestion).
+    """
+    candidates = []
+    for candidate in approved:
+        if candidate == recipient or len(candidate) != len(recipient):
+            continue
+        diffs = [i for i in range(len(candidate)) if candidate[i] != recipient[i]]
+        if 1 <= len(diffs) <= 2:
+            candidates.append({"suggestedRecipient": candidate, "differingPositions": diffs})
+    if len(candidates) == 1:
+        return candidates[0]
+    return None
+
+
+def _load_policy(currency: str = DEFAULT_CURRENCY) -> dict[str, Any]:
+    entry = _currency(currency)
     raw = os.environ.get("VERTICE_POLICY_JSON", "")
     if len(raw.encode("utf-8")) > MAX_POLICY_BYTES:
         raise ValueError("VERTICE_POLICY_JSON exceeds the size limit")
     if not raw:
         return {
+            "currency": currency,
             "chainId": CHAIN_ID,
-            "token": ARGT_ADDRESS,
-            "paymentBatch": PAYMENT_BATCH_ADDRESS,
+            "token": entry["token"],
+            "paymentBatch": entry["paymentBatch"],
             "decimals": 18,
             "maxAmountPerPayment": os.environ.get("MAX_AMOUNT_PER_PAYMENT", "10000000000000000000000"),
             "maxAmountPerBatch": os.environ.get("MAX_AMOUNT_PER_BATCH", "50000000000000000000000"),
@@ -124,10 +198,11 @@ def _load_policy() -> dict[str, Any]:
     policy = json.loads(raw)
     if not isinstance(policy, dict):
         raise ValueError("VERTICE_POLICY_JSON must contain an object")
+    policy["currency"] = currency
     policy["chainId"] = int(policy.get("chainId", CHAIN_ID))
-    policy["token"] = _require_address(policy.get("token", ARGT_ADDRESS), "policy.token")
+    policy["token"] = _require_address(policy.get("token", entry["token"]), "policy.token")
     policy["paymentBatch"] = _require_address(
-        policy.get("paymentBatch", PAYMENT_BATCH_ADDRESS), "policy.paymentBatch"
+        policy.get("paymentBatch", entry["paymentBatch"]), "policy.paymentBatch"
     )
     recipients = policy.get("approvedRecipients", [])
     if not isinstance(recipients, list):
@@ -150,25 +225,41 @@ def get_chain_status() -> dict[str, Any]:
 
 
 @mcp.tool()
-def get_business_policy() -> dict[str, Any]:
-    """Return the bounded policy used for proposal preparation, never secrets."""
+def get_business_policy(currency: str = DEFAULT_CURRENCY) -> dict[str, Any]:
+    """Return the bounded policy used for proposal preparation, never secrets.
+
+    `currency` selects which Twin Stablecoin's token/PaymentBatch pair to
+    report (e.g. "ARGt", "BRAt"); see get_token_config. Caps and approved
+    recipients come from the same VERTICE_POLICY_JSON for every currency in
+    this version.
+    """
     try:
-        return {"ok": True, "policy": _load_policy()}
+        return {"ok": True, "policy": _load_policy(currency)}
     except (ValueError, json.JSONDecodeError) as exc:
         return _error("invalid_policy", str(exc))
 
 
 @mcp.tool()
 def get_token_config() -> dict[str, Any]:
-    """Return the fixed ARGt/Arbitrum configuration."""
+    """Return the fixed Arbitrum configuration for every configured Twin
+    Stablecoin: token, PaymentBatch, and PaymentReceiptRegistry addresses.
+    Each currency has its own PaymentBatch deployment (its token address is
+    fixed at construction); a currency's PaymentReceiptRegistry may be
+    shared with another currency since a Claim already names its own
+    paymentBatchContract.
+    """
     return {
         "ok": True,
         "chainId": CHAIN_ID,
-        "token": ARGT_ADDRESS,
-        "symbol": "ARGt",
         "decimals": 18,
-        "paymentBatch": PAYMENT_BATCH_ADDRESS,
-        "receiptRegistry": RECEIPT_REGISTRY_ADDRESS,
+        "currencies": {
+            symbol: {
+                "token": entry["token"],
+                "paymentBatch": entry["paymentBatch"],
+                "receiptRegistry": entry["receiptRegistry"],
+            }
+            for symbol, entry in CURRENCIES.items()
+        },
     }
 
 
@@ -179,7 +270,13 @@ def read_payment_status(transaction_hash: str) -> dict[str, Any]:
         tx_hash = _require_hash(transaction_hash)
         chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
         if chain_id != CHAIN_ID:
-            return {"ok": True, "available": False, "transactionHash": tx_hash, "status": "WRONG_CHAIN", "chainId": chain_id}
+            return {
+                "ok": True,
+                "available": False,
+                "transactionHash": tx_hash,
+                "status": "WRONG_CHAIN",
+                "chainId": chain_id,
+            }
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "available": False, "transactionHash": tx_hash, "status": "PENDING_OR_NOT_FOUND"}
@@ -207,14 +304,29 @@ def verify_payment(
     amount: str,
     invoice_ref: str,
     run_id: str,
+    currency: str = DEFAULT_CURRENCY,
 ) -> dict[str, Any]:
-    """Verify ARGt Transfer and PaymentExecuted evidence from one real receipt.
+    """Verify Transfer and PaymentExecuted evidence from one real receipt.
 
     Returns VERIFIED, NOT_VERIFIED, or INSUFFICIENT_EVIDENCE. The function is
     read-only and derives facts from RPC logs rather than trusting a claim.
     Amount and identifiers use raw 18-decimal/base-unit representations.
+    `currency` selects which Twin Stablecoin/PaymentBatch pair to check the
+    receipt against (e.g. "ARGt", "BRAt") — see get_token_config.
+
+    Binds the connected RPC to the configured chain, requires the
+    transaction's own target to be that currency's PaymentBatch, and
+    requires MIN_CONFIRMATIONS before trusting a receipt (a bound, not a
+    proof, of finality). When a transaction's logs contain more than one
+    candidate PaymentExecuted or Transfer (a multi-payment batch), this
+    selects only the pair matching every claimed field — zero or more than
+    one candidate is INSUFFICIENT_EVIDENCE, never a guess.
     """
     try:
+        entry = _currency(currency)
+        token_address = entry["token"]
+        payment_batch_address = entry["paymentBatch"]
+
         tx_hash = _require_hash(transaction_hash)
         expected_recipient = _require_address(recipient, "recipient")
         if (
@@ -227,6 +339,7 @@ def verify_payment(
         expected_amount = int(amount)
         expected_invoice = _bytes32_topic(invoice_ref)
         expected_run = _bytes32_topic(run_id)
+
         chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
         if chain_id != CHAIN_ID:
             return {
@@ -235,12 +348,14 @@ def verify_payment(
                 "reason": "RPC is not Arbitrum",
                 "chainId": chain_id,
             }
+
         latest_block = _quantity(_rpc("eth_blockNumber", []), "blockNumber")
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt unavailable"}
         if _quantity(receipt.get("status", "0x0"), "status") != 1:
             return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction reverted"}
+
         receipt_block = _quantity(receipt["blockNumber"], "blockNumber")
         if latest_block < receipt_block:
             return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt is ahead of the RPC head"}
@@ -253,7 +368,7 @@ def verify_payment(
                 "requiredConfirmations": MIN_CONFIRMATIONS,
                 "observedConfirmations": observed_confirmations,
             }
-        if str(receipt.get("to", "")).lower() != PAYMENT_BATCH_ADDRESS:
+        if str(receipt.get("to", "")).lower() != payment_batch_address:
             return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction target is not PaymentBatch"}
 
         transfers: list[dict[str, Any]] = []
@@ -261,7 +376,7 @@ def verify_payment(
         for log in receipt.get("logs", []):
             topics = log.get("topics", [])
             address = str(log.get("address", "")).lower()
-            if topics and topics[0].lower() == TRANSFER_TOPIC and address == ARGT_ADDRESS and len(topics) == 3:
+            if topics and topics[0].lower() == TRANSFER_TOPIC and address == token_address and len(topics) == 3:
                 transfers.append({
                     "token": address,
                     "sender": _word_address(topics[1]),
@@ -271,7 +386,7 @@ def verify_payment(
             if (
                 topics
                 and topics[0].lower() == PAYMENT_EXECUTED_TOPIC
-                and address == PAYMENT_BATCH_ADDRESS
+                and address == payment_batch_address
                 and len(topics) == 4
             ):
                 payments.append({
@@ -307,7 +422,7 @@ def verify_payment(
 
         checks = {
             "transactionSucceeded": True,
-            "token": transfer["token"] == ARGT_ADDRESS,
+            "token": transfer["token"] == token_address,
             "runId": payment["runId"] == expected_run,
             "invoiceRef": payment["invoiceRef"] == expected_invoice,
             "recipient": transfer["recipient"] == expected_recipient and payment["recipient"] == expected_recipient,
@@ -320,6 +435,7 @@ def verify_payment(
             "verdict": verdict,
             "transactionHash": tx_hash,
             "chainId": chain_id,
+            "currency": currency,
             "requiredConfirmations": MIN_CONFIRMATIONS,
             "observedConfirmations": observed_confirmations,
             "checks": checks,
@@ -351,12 +467,23 @@ def list_invoices() -> dict[str, Any]:
 
 
 @mcp.tool()
-def create_payment_proposal(invoices: list[dict[str, Any]]) -> dict[str, Any]:
-    """Prepare a deterministic proposal without signing or submitting anything."""
+def create_payment_proposal(
+    invoices: list[dict[str, Any]], currency: str = DEFAULT_CURRENCY
+) -> dict[str, Any]:
+    """Prepare a deterministic proposal without signing or submitting anything.
+
+    `currency` selects which Twin Stablecoin's policy (token, PaymentBatch,
+    caps, approved recipients) to apply — see get_business_policy.
+
+    An unapproved recipient that differs from exactly one approved address by
+    1-2 characters is excluded as POSSIBLE_TYPO (with a `typoSuggestion`
+    field naming the likely intended address) instead of the generic
+    RECIPIENT_NOT_APPROVED — never auto-corrected, always still excluded.
+    """
     try:
         if not isinstance(invoices, list) or len(invoices) > MAX_INVOICES:
             return _error("proposal_failed", "invoices must be an array within the item limit")
-        policy = _load_policy()
+        policy = _load_policy(currency)
         approved = set(policy.get("approvedRecipients", []))
         per_payment_cap = int(policy["maxAmountPerPayment"])
         batch_cap = int(policy["maxAmountPerBatch"])
@@ -380,8 +507,12 @@ def create_payment_proposal(invoices: list[dict[str, Any]]) -> dict[str, Any]:
             if invoice_id in seen:
                 reasons.append("POSSIBLE_DUPLICATE")
             seen.add(invoice_id)
-            if not ADDRESS_RE.fullmatch(recipient) or recipient not in approved:
+            typo: dict[str, Any] | None = None
+            if not ADDRESS_RE.fullmatch(recipient):
                 reasons.append("RECIPIENT_NOT_APPROVED")
+            elif recipient not in approved:
+                typo = _typo_match(recipient, approved)
+                reasons.append("POSSIBLE_TYPO" if typo else "RECIPIENT_NOT_APPROVED")
             if not raw_amount.isdigit() or int(raw_amount) <= 0:
                 reasons.append("INVALID_AMOUNT")
             amount = int(raw_amount) if raw_amount.isdigit() else 0
@@ -390,6 +521,8 @@ def create_payment_proposal(invoices: list[dict[str, Any]]) -> dict[str, Any]:
             if total + amount > batch_cap:
                 reasons.append("EXCEEDS_BATCH_CAP")
             item = {"invoiceId": invoice_id, "recipient": recipient, "amount": raw_amount}
+            if typo is not None:
+                item["typoSuggestion"] = typo
             if reasons:
                 excluded.append({**item, "action": "EXCLUDED", "reasons": reasons})
             else:
@@ -397,6 +530,7 @@ def create_payment_proposal(invoices: list[dict[str, Any]]) -> dict[str, Any]:
                 total += amount
         return {
             "ok": True,
+            "currency": currency,
             "chainId": policy["chainId"],
             "token": policy["token"],
             "accepted": accepted,

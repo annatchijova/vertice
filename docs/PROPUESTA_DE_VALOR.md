@@ -47,15 +47,19 @@ Stablecoins hacen que un saldo en moneda local sea programable:
 
 ## Estado actual vs. visión multi-moneda
 
-Lo construido y desplegado hoy usa **ARGt en Arbitrum One** — contrato, verificador y
-una transacción real ejecutados (ver [`README.md`](../README.md)). La arquitectura no
-está atada a un solo token: `PaymentBatch` recibe la dirección del token en el
-despliegue, y el mismo patrón (allowlist, topes, anti-replay, verificación
-`Transfer`+`PaymentExecuted`) aplica igual a cualquier otra Twin Stablecoin (BRAt,
-COLt, MEXt, BOLt...) con su propio despliegue. El caso de una empresa pagando a
-proveedores en varios países con varias Twin Stablecoins simultáneamente —el caso de
-negocio de más arriba— es la dirección del producto, no algo ya construido en este
-repositorio.
+Lo construido hoy ya cubre dos Twin Stablecoins en Arbitrum One: **ARGt** (contrato,
+verificador, MCP y una transacción real pagada a un proveedor) y **BRAt** (mismo
+contrato `PaymentBatch`, mismo `PaymentVerifier`, mismo MCP — con su propio despliegue y
+dirección de token; ver [`README.md`](../README.md) para las direcciones). Esto no es
+solo el argumento de que "la arquitectura generaliza": es la misma arquitectura
+funcionando dos veces, con dos tokens distintos, sin cambiar una línea del contrato.
+
+Lo que todavía es visión, no construido: el caso completo de una empresa pagando a
+proveedores de Brasil, Colombia, México y Bolivia *en simultáneo*, con políticas,
+excepciones y conciliación por país — eso requiere más monedas desplegadas (COLt, MEXt,
+BOLt siguen el mismo patrón), más fondos de prueba, y la lógica de negocio que hoy vive
+en el MCP ampliada para manejar varias políticas a la vez. El camino está probado; la
+cobertura completa de los cuatro países, no.
 
 ## La frase ancla
 
