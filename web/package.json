@@ -1,0 +1,20 @@
+{
+  "name": "@vertice/proof",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "viem": "2.57.2"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3",
+    "vite": "6.4.4"
+  }
+}
