@@ -2,6 +2,9 @@
 
 **[Technical README](TECHNICAL_README.md)** — arquitectura, invariantes, estado exacto
 de despliegue por moneda, límites conocidos.
+**Entrega:** [versión corta](docs/SUBMISSION_CORTO.md) ·
+[versión larga](docs/SUBMISSION_LARGO.md) — problema, solución, diferenciación,
+distribución, modelo de negocio.
 
 > La IA investiga. El código decide. El humano firma. La cadena deja la prueba.
 
