@@ -66,7 +66,15 @@ def _rpc(method: str, params: list[Any]) -> Any:
     request = urllib.request.Request(
         RPC_URL,
         data=payload,
-        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            # Arbitrum's public RPC sits behind Cloudflare, which returns a
+            # bare 403 (error code 1010) for urllib's default User-Agent
+            # ("Python-urllib/3.x"). Confirmed empirically: identical request
+            # succeeds with curl and with any ordinary browser-shaped UA.
+            "User-Agent": "Mozilla/5.0 (compatible; VerticeMCP/1.0)",
+        },
         method="POST",
     )
     try:
