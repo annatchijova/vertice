@@ -24,6 +24,17 @@ mcp = FastMCP("vertice-readonly")
 RPC_URL = os.environ.get("ARBITRUM_RPC_URL", "https://arb1.arbitrum.io/rpc")
 CHAIN_ID = 42161
 
+# Bound, not proof: Arbitrum has fast soft confirmation but is not instantly
+# final. Default of 12 blocks is a conservative margin, not a derived
+# finality guarantee.
+MIN_CONFIRMATIONS = int(os.environ.get("VERTICE_MIN_CONFIRMATIONS", "12"))
+MAX_RPC_RESPONSE_BYTES = 2_000_000
+MAX_POLICY_BYTES = 64_000
+MAX_INVOICE_FILE_BYTES = 1_000_000
+MAX_INVOICES = 500
+MAX_FIELD_LENGTH = 256
+MAX_UINT256_DECIMAL_DIGITS = 78
+
 # Each Twin Stablecoin gets its own PaymentBatch deployment (the contract's
 # token address is fixed at construction) but can share one
 # PaymentReceiptRegistry, since a Claim already names its paymentBatchContract
@@ -57,6 +68,13 @@ CURRENCIES: dict[str, dict[str, str]] = {
     },
 }
 
+# Backward-compatible module-level aliases for the default currency (ARGt).
+# test_mcp_server.py and any external caller written against the earlier
+# single-currency surface keeps working unchanged.
+ARGT_ADDRESS = CURRENCIES["ARGt"]["token"]
+PAYMENT_BATCH_ADDRESS = CURRENCIES["ARGt"]["paymentBatch"]
+RECEIPT_REGISTRY_ADDRESS = CURRENCIES["ARGt"]["receiptRegistry"]
+
 
 def _currency(symbol: str) -> dict[str, str]:
     entry = CURRENCIES.get(symbol)
@@ -64,14 +82,11 @@ def _currency(symbol: str) -> dict[str, str]:
         raise ValueError(f"unknown currency {symbol!r}; configured: {sorted(CURRENCIES)}")
     return entry
 
+
 ADDRESS_RE = re.compile(r"^0x[a-fA-F0-9]{40}$")
 HASH_RE = re.compile(r"^0x[a-fA-F0-9]{64}$")
 TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 PAYMENT_EXECUTED_TOPIC = "0xfa59547ec40fa46063982f8fc7bc22012824f80185f15b2aec111c6b2fb7bf81"
-
-# Bound, not proof: Arbitrum has fast soft confirmation but is not instantly
-# final. This mirrors web/src/chain.ts's REQUIRED_CONFIRMATIONS.
-REQUIRED_CONFIRMATIONS = 1
 
 
 def _error(code: str, message: str, **extra: Any) -> dict[str, Any]:
@@ -114,7 +129,10 @@ def _rpc(method: str, params: list[Any]) -> Any:
     )
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
-            body = json.loads(response.read().decode("utf-8"))
+            raw_body = response.read(MAX_RPC_RESPONSE_BYTES + 1)
+            if len(raw_body) > MAX_RPC_RESPONSE_BYTES:
+                raise RuntimeError("RPC response exceeds the size limit")
+            body = json.loads(raw_body.decode("utf-8"))
     except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"RPC unavailable: {exc}") from exc
     if body.get("error"):
@@ -135,14 +153,14 @@ def _word_uint(data: str) -> int:
 
 
 def _bytes32_topic(topic: str) -> str:
-    if not isinstance(topic, str) or len(topic) != 66:
-        raise ValueError("bytes32 topic is malformed")
-    return topic.lower()
+    return _require_hash(topic, "bytes32 topic")
 
 
 def _load_policy(currency: str = DEFAULT_CURRENCY) -> dict[str, Any]:
     entry = _currency(currency)
     raw = os.environ.get("VERTICE_POLICY_JSON", "")
+    if len(raw.encode("utf-8")) > MAX_POLICY_BYTES:
+        raise ValueError("VERTICE_POLICY_JSON exceeds the size limit")
     if not raw:
         return {
             "currency": currency,
@@ -168,6 +186,8 @@ def _load_policy(currency: str = DEFAULT_CURRENCY) -> dict[str, Any]:
     recipients = policy.get("approvedRecipients", [])
     if not isinstance(recipients, list):
         raise ValueError("policy.approvedRecipients must be an array")
+    if len(recipients) > MAX_INVOICES:
+        raise ValueError("policy.approvedRecipients exceeds the size limit")
     policy["approvedRecipients"] = [_require_address(item, "approved recipient") for item in recipients]
     return policy
 
@@ -188,9 +208,9 @@ def get_business_policy(currency: str = DEFAULT_CURRENCY) -> dict[str, Any]:
     """Return the bounded policy used for proposal preparation, never secrets.
 
     `currency` selects which Twin Stablecoin's token/PaymentBatch pair to
-    report (e.g. "ARGt", "BRAt"); see get_token_config for what is
-    configured. Caps and approved recipients come from the same
-    VERTICE_POLICY_JSON for every currency in this version.
+    report (e.g. "ARGt", "BRAt"); see get_token_config. Caps and approved
+    recipients come from the same VERTICE_POLICY_JSON for every currency in
+    this version.
     """
     try:
         return {"ok": True, "policy": _load_policy(currency)}
@@ -227,6 +247,15 @@ def read_payment_status(transaction_hash: str) -> dict[str, Any]:
     """Read a real transaction receipt; never treats a missing receipt as success."""
     try:
         tx_hash = _require_hash(transaction_hash)
+        chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
+        if chain_id != CHAIN_ID:
+            return {
+                "ok": True,
+                "available": False,
+                "transactionHash": tx_hash,
+                "status": "WRONG_CHAIN",
+                "chainId": chain_id,
+            }
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "available": False, "transactionHash": tx_hash, "status": "PENDING_OR_NOT_FOUND"}
@@ -234,6 +263,7 @@ def read_payment_status(transaction_hash: str) -> dict[str, Any]:
             "ok": True,
             "available": True,
             "transactionHash": tx_hash,
+            "chainId": chain_id,
             "status": "SUCCESS" if _quantity(receipt["status"], "status") == 1 else "REVERTED",
             "blockNumber": _quantity(receipt["blockNumber"], "blockNumber"),
             "from": receipt.get("from"),
@@ -263,51 +293,62 @@ def verify_payment(
     `currency` selects which Twin Stablecoin/PaymentBatch pair to check the
     receipt against (e.g. "ARGt", "BRAt") — see get_token_config.
 
-    Binds the connected RPC to the configured chain and requires
-    REQUIRED_CONFIRMATIONS before trusting a receipt (a bound, not a proof,
-    of finality). When a transaction's logs contain more than one candidate
-    PaymentExecuted or Transfer (a multi-payment batch), this selects only
-    the pair whose (runId, invoiceRef) matches the claim and whose Transfer
-    agrees with that specific PaymentExecuted's recipient/amount — it never
-    silently keeps "the last match".
+    Binds the connected RPC to the configured chain, requires the
+    transaction's own target to be that currency's PaymentBatch, and
+    requires MIN_CONFIRMATIONS before trusting a receipt (a bound, not a
+    proof, of finality). When a transaction's logs contain more than one
+    candidate PaymentExecuted or Transfer (a multi-payment batch), this
+    selects only the pair matching every claimed field — zero or more than
+    one candidate is INSUFFICIENT_EVIDENCE, never a guess.
     """
     try:
         entry = _currency(currency)
         token_address = entry["token"]
         payment_batch_address = entry["paymentBatch"]
+
         tx_hash = _require_hash(transaction_hash)
         expected_recipient = _require_address(recipient, "recipient")
-        if not isinstance(amount, str) or not amount.isdigit() or int(amount) <= 0:
+        if (
+            not isinstance(amount, str)
+            or len(amount) > MAX_UINT256_DECIMAL_DIGITS
+            or not amount.isdigit()
+            or int(amount) <= 0
+        ):
             raise ValueError("amount must be a positive integer string in base units")
         expected_amount = int(amount)
         expected_invoice = _bytes32_topic(invoice_ref)
         expected_run = _bytes32_topic(run_id)
 
-        rpc_chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
-        if rpc_chain_id != CHAIN_ID:
+        chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
+        if chain_id != CHAIN_ID:
             return {
                 "ok": True,
                 "verdict": "INSUFFICIENT_EVIDENCE",
-                "reason": f"connected RPC reports chain {rpc_chain_id}, expected {CHAIN_ID}",
+                "reason": "RPC is not Arbitrum",
+                "chainId": chain_id,
             }
 
+        latest_block = _quantity(_rpc("eth_blockNumber", []), "blockNumber")
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt unavailable"}
         if _quantity(receipt.get("status", "0x0"), "status") != 1:
             return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction reverted"}
 
-        receipt_block = _quantity(receipt["blockNumber"], "receipt.blockNumber")
-        head_block = _quantity(_rpc("eth_blockNumber", []), "headBlockNumber")
-        observed_confirmations = head_block - receipt_block + 1
-        if observed_confirmations < REQUIRED_CONFIRMATIONS:
+        receipt_block = _quantity(receipt["blockNumber"], "blockNumber")
+        if latest_block < receipt_block:
+            return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt is ahead of the RPC head"}
+        observed_confirmations = latest_block - receipt_block + 1
+        if observed_confirmations < MIN_CONFIRMATIONS:
             return {
                 "ok": True,
                 "verdict": "INSUFFICIENT_EVIDENCE",
-                "reason": "below required confirmation depth",
+                "reason": "required confirmations not reached",
+                "requiredConfirmations": MIN_CONFIRMATIONS,
                 "observedConfirmations": observed_confirmations,
-                "requiredConfirmations": REQUIRED_CONFIRMATIONS,
             }
+        if str(receipt.get("to", "")).lower() != payment_batch_address:
+            return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction target is not PaymentBatch"}
 
         transfers: list[dict[str, Any]] = []
         payments: list[dict[str, Any]] = []
@@ -334,32 +375,32 @@ def verify_payment(
                     "amount": _word_uint(log.get("data", "")),
                 })
 
-        matching_payments = [p for p in payments if p["runId"] == expected_run and p["invoiceRef"] == expected_invoice]
-        if len(matching_payments) != 1:
-            return {
-                "ok": True,
-                "verdict": "INSUFFICIENT_EVIDENCE",
-                "reason": "expected exactly one PaymentExecuted log matching (runId, invoiceRef)",
-                "matchingPaymentExecutedCount": len(matching_payments),
-            }
-        payment = matching_payments[0]
-
-        matching_transfers = [
-            t for t in transfers if t["recipient"] == payment["recipient"] and t["amount"] == payment["amount"]
+        matching_payments = [
+            item
+            for item in payments
+            if item["runId"] == expected_run
+            and item["invoiceRef"] == expected_invoice
+            and item["recipient"] == expected_recipient
+            and item["amount"] == expected_amount
         ]
-        if len(matching_transfers) != 1:
+        matching_transfers = [
+            item
+            for item in transfers
+            if item["recipient"] == expected_recipient and item["amount"] == expected_amount
+        ]
+        if len(matching_payments) != 1 or len(matching_transfers) != 1:
             return {
                 "ok": True,
                 "verdict": "INSUFFICIENT_EVIDENCE",
-                "reason": "expected exactly one ARGt Transfer matching the PaymentExecuted recipient/amount",
-                "matchingTransferCount": len(matching_transfers),
+                "reason": "payment evidence is missing or ambiguous",
+                "transferMatches": len(matching_transfers),
+                "paymentExecutedMatches": len(matching_payments),
             }
         transfer = matching_transfers[0]
+        payment = matching_payments[0]
 
         checks = {
             "transactionSucceeded": True,
-            "chainId": rpc_chain_id == CHAIN_ID,
-            "confirmations": observed_confirmations >= REQUIRED_CONFIRMATIONS,
             "token": transfer["token"] == token_address,
             "runId": payment["runId"] == expected_run,
             "invoiceRef": payment["invoiceRef"] == expected_invoice,
@@ -372,7 +413,9 @@ def verify_payment(
             "ok": True,
             "verdict": verdict,
             "transactionHash": tx_hash,
-            "chainId": CHAIN_ID,
+            "chainId": chain_id,
+            "currency": currency,
+            "requiredConfirmations": MIN_CONFIRMATIONS,
             "observedConfirmations": observed_confirmations,
             "checks": checks,
             "transfer": transfer,
@@ -390,9 +433,13 @@ def list_invoices() -> dict[str, Any]:
         return {"ok": True, "available": False, "invoices": [], "reason": "VERTICE_INVOICES_PATH is not configured"}
     path = Path(path_value).expanduser()
     try:
+        if path.stat().st_size > MAX_INVOICE_FILE_BYTES:
+            return _error("invalid_invoices", "invoice fixture exceeds the byte limit", path=str(path))
         data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(data, list):
             return _error("invalid_invoices", "invoice fixture must be a JSON array")
+        if len(data) > MAX_INVOICES:
+            return _error("invalid_invoices", "invoice fixture exceeds the item limit")
         return {"ok": True, "available": True, "path": str(path), "invoices": data}
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         return _error("invalid_invoices", str(exc), path=str(path))
@@ -408,6 +455,8 @@ def create_payment_proposal(
     caps, approved recipients) to apply — see get_business_policy.
     """
     try:
+        if not isinstance(invoices, list) or len(invoices) > MAX_INVOICES:
+            return _error("proposal_failed", "invoices must be an array within the item limit")
         policy = _load_policy(currency)
         approved = set(policy.get("approvedRecipients", []))
         per_payment_cap = int(policy["maxAmountPerPayment"])
@@ -417,9 +466,15 @@ def create_payment_proposal(
         excluded: list[dict[str, Any]] = []
         total = 0
         for invoice in invoices:
+            if not isinstance(invoice, dict):
+                return _error("proposal_failed", "each invoice must be an object")
             invoice_id = str(invoice.get("invoiceId", ""))
             recipient = str(invoice.get("recipient", "")).lower()
             raw_amount = str(invoice.get("amount", ""))
+            if len(invoice_id) > MAX_FIELD_LENGTH or len(recipient) > MAX_FIELD_LENGTH:
+                return _error("proposal_failed", "invoice field exceeds the length limit")
+            if len(raw_amount) > MAX_UINT256_DECIMAL_DIGITS:
+                return _error("proposal_failed", "amount exceeds uint256 decimal length")
             reasons: list[str] = []
             if not invoice_id:
                 reasons.append("MISSING_INVOICE_ID")
@@ -443,6 +498,7 @@ def create_payment_proposal(
                 total += amount
         return {
             "ok": True,
+            "currency": currency,
             "chainId": policy["chainId"],
             "token": policy["token"],
             "accepted": accepted,

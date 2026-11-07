@@ -177,3 +177,16 @@ autorizar una wallet o cambiar una allowlist.
 - RPC real: el endpoint público probado devolvió HTTP 403; no se afirma verificación live
   contra Arbitrum desde esa prueba.
 - No se enviaron transacciones durante este red-team.
+
+## Remediación posterior al audit
+
+En el commit posterior al audit se implementaron:
+
+- comprobación de `eth_chainId` en lectura de receipts y verificación;
+- confirmaciones mínimas configurables mediante `VERTICE_MIN_CONFIRMATIONS`;
+- selección por `(runId, invoiceRef, recipient, amount)` y rechazo de ambigüedad;
+- límites de respuesta RPC, política, fixture, cantidad de facturas y longitud de campos;
+- tests adversariales para chain incorrecta, finality, batches múltiples y tamaño de entrada.
+
+Permanece fuera del código del repositorio el sandbox del sistema operativo: debe
+proporcionarlo y verificarse en el host que ejecute Claude/MCP.
