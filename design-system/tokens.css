@@ -1,0 +1,102 @@
+/* VÉRTICE — generado desde tokens.json por build.py. No editar a mano. */
+:root, [data-theme="light"] {
+  --canvas: #f2f2f2;
+  --surface: #ffffff;
+  --sunken: #e5e5e5;
+  --line: #e5e5e5;
+  --line-strong: #cccccc;
+  --ink-900: #121212;
+  --ink-700: #333333;
+  --ink-500: #666666;
+  --ink-400: #999999;
+  --inverse: #000000;
+  --on-inverse: #ffffff;
+  --brand: #ff3300;
+  --brand-2: #ff6600;
+  --brand-tint: #ff660029;
+  --on-brand: #000000;
+  --gold-1: #e2d79c;
+  --gold-2: #9c8746;
+  --verified: #17653a;
+  --verified-bg: #e7f3eb;
+  --failed: #b42318;
+  --failed-bg: #fbeae8;
+  --insufficient: #735c12;
+  --insufficient-bg: #f5f0dc;
+  --pending: #666666;
+  --pending-bg: #efefef;
+  --paper: #fafafa;
+  --focus: var(--brand);
+  --shadow-none: none;
+  --shadow-lift: 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-paper: 0 2px 4px rgba(0,0,0,0.06), 0 24px 48px rgba(0,0,0,0.10);
+}
+
+[data-theme="dark"] {
+  --canvas: #000000;
+  --surface: #121212;
+  --sunken: #222222;
+  --line: #222222;
+  --line-strong: #333333;
+  --ink-900: #f2f2f2;
+  --ink-700: #cccccc;
+  --ink-500: #999999;
+  --ink-400: #666666;
+  --inverse: #ffffff;
+  --on-inverse: #000000;
+  --verified: #6fd39a;
+  --verified-bg: #0d2618;
+  --failed: #ff9a9a;
+  --failed-bg: #2e1311;
+  --insufficient: #e2d79c;
+  --insufficient-bg: #26220f;
+  --pending: #999999;
+  --pending-bg: #1c1c1c;
+  --paper: #fafafa;
+  --shadow-lift: 0 8px 24px rgba(0,0,0,0.6);
+  --shadow-paper: 0 2px 4px rgba(0,0,0,0.4), 0 32px 80px rgba(0,0,0,0.7);
+  color-scheme: dark;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-sans: Geist, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+.t-display { font-family: var(--font-serif); font-size: 64px; line-height: 1.05; font-weight: 400; letter-spacing: -0.04em; }
+
+.t-h1 { font-family: var(--font-serif); font-size: 44px; line-height: 1.1; font-weight: 400; letter-spacing: -0.03em; }
+
+.t-h2 { font-family: var(--font-serif); font-size: 32px; line-height: 1.15; font-weight: 400; letter-spacing: -0.02em; }
+
+.t-h3 { font-family: var(--font-serif); font-size: 24px; line-height: 1.2; font-weight: 400; letter-spacing: -0.02em; }
+
+.t-amount { font-family: var(--font-serif); font-size: 40px; line-height: 1.05; font-weight: 400; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+
+.t-title { font-family: var(--font-sans); font-size: 16px; line-height: 1.4; font-weight: 500; }
+
+.t-body-lg { font-family: var(--font-sans); font-size: 18px; line-height: 1.5; font-weight: 400; }
+
+.t-body { font-family: var(--font-sans); font-size: 16px; line-height: 1.5; font-weight: 400; }
+
+.t-small { font-family: var(--font-sans); font-size: 14px; line-height: 1.45; font-weight: 400; }
+
+.t-label { font-family: var(--font-sans); font-size: 12px; line-height: 1.3; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.t-mono { font-family: var(--font-mono); font-size: 14px; line-height: 1.45; font-weight: 400; font-variant-numeric: tabular-nums; }
+
+.t-mono-sm { font-family: var(--font-mono); font-size: 12px; line-height: 1.4; font-weight: 400; font-variant-numeric: tabular-nums; }
