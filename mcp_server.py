@@ -23,6 +23,13 @@ mcp = FastMCP("vertice-readonly")
 
 RPC_URL = os.environ.get("ARBITRUM_RPC_URL", "https://arb1.arbitrum.io/rpc")
 CHAIN_ID = 42161
+MIN_CONFIRMATIONS = int(os.environ.get("VERTICE_MIN_CONFIRMATIONS", "12"))
+MAX_RPC_RESPONSE_BYTES = 2_000_000
+MAX_POLICY_BYTES = 64_000
+MAX_INVOICE_FILE_BYTES = 1_000_000
+MAX_INVOICES = 500
+MAX_FIELD_LENGTH = 256
+MAX_UINT256_DECIMAL_DIGITS = 78
 ARGT_ADDRESS = os.environ.get(
     "ARGT_ADDRESS", "0x59863989d080b22476db95656d0c3cc18be92214"
 ).lower()
@@ -71,7 +78,10 @@ def _rpc(method: str, params: list[Any]) -> Any:
     )
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
-            body = json.loads(response.read().decode("utf-8"))
+            raw_body = response.read(MAX_RPC_RESPONSE_BYTES + 1)
+            if len(raw_body) > MAX_RPC_RESPONSE_BYTES:
+                raise RuntimeError("RPC response exceeds the size limit")
+            body = json.loads(raw_body.decode("utf-8"))
     except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"RPC unavailable: {exc}") from exc
     if body.get("error"):
@@ -92,13 +102,13 @@ def _word_uint(data: str) -> int:
 
 
 def _bytes32_topic(topic: str) -> str:
-    if not isinstance(topic, str) or len(topic) != 66:
-        raise ValueError("bytes32 topic is malformed")
-    return topic.lower()
+    return _require_hash(topic, "bytes32 topic")
 
 
 def _load_policy() -> dict[str, Any]:
     raw = os.environ.get("VERTICE_POLICY_JSON", "")
+    if len(raw.encode("utf-8")) > MAX_POLICY_BYTES:
+        raise ValueError("VERTICE_POLICY_JSON exceeds the size limit")
     if not raw:
         return {
             "chainId": CHAIN_ID,
@@ -122,6 +132,8 @@ def _load_policy() -> dict[str, Any]:
     recipients = policy.get("approvedRecipients", [])
     if not isinstance(recipients, list):
         raise ValueError("policy.approvedRecipients must be an array")
+    if len(recipients) > MAX_INVOICES:
+        raise ValueError("policy.approvedRecipients exceeds the size limit")
     policy["approvedRecipients"] = [_require_address(item, "approved recipient") for item in recipients]
     return policy
 
@@ -165,6 +177,9 @@ def read_payment_status(transaction_hash: str) -> dict[str, Any]:
     """Read a real transaction receipt; never treats a missing receipt as success."""
     try:
         tx_hash = _require_hash(transaction_hash)
+        chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
+        if chain_id != CHAIN_ID:
+            return {"ok": True, "available": False, "transactionHash": tx_hash, "status": "WRONG_CHAIN", "chainId": chain_id}
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "available": False, "transactionHash": tx_hash, "status": "PENDING_OR_NOT_FOUND"}
@@ -172,6 +187,7 @@ def read_payment_status(transaction_hash: str) -> dict[str, Any]:
             "ok": True,
             "available": True,
             "transactionHash": tx_hash,
+            "chainId": chain_id,
             "status": "SUCCESS" if _quantity(receipt["status"], "status") == 1 else "REVERTED",
             "blockNumber": _quantity(receipt["blockNumber"], "blockNumber"),
             "from": receipt.get("from"),
@@ -201,50 +217,93 @@ def verify_payment(
     try:
         tx_hash = _require_hash(transaction_hash)
         expected_recipient = _require_address(recipient, "recipient")
-        if not isinstance(amount, str) or not amount.isdigit() or int(amount) <= 0:
+        if (
+            not isinstance(amount, str)
+            or len(amount) > MAX_UINT256_DECIMAL_DIGITS
+            or not amount.isdigit()
+            or int(amount) <= 0
+        ):
             raise ValueError("amount must be a positive integer string in base units")
         expected_amount = int(amount)
         expected_invoice = _bytes32_topic(invoice_ref)
         expected_run = _bytes32_topic(run_id)
+        chain_id = _quantity(_rpc("eth_chainId", []), "chainId")
+        if chain_id != CHAIN_ID:
+            return {
+                "ok": True,
+                "verdict": "INSUFFICIENT_EVIDENCE",
+                "reason": "RPC is not Arbitrum",
+                "chainId": chain_id,
+            }
+        latest_block = _quantity(_rpc("eth_blockNumber", []), "blockNumber")
         receipt = _rpc("eth_getTransactionReceipt", [tx_hash])
         if receipt is None:
             return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt unavailable"}
         if _quantity(receipt.get("status", "0x0"), "status") != 1:
             return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction reverted"}
+        receipt_block = _quantity(receipt["blockNumber"], "blockNumber")
+        if latest_block < receipt_block:
+            return {"ok": True, "verdict": "INSUFFICIENT_EVIDENCE", "reason": "receipt is ahead of the RPC head"}
+        observed_confirmations = latest_block - receipt_block + 1
+        if observed_confirmations < MIN_CONFIRMATIONS:
+            return {
+                "ok": True,
+                "verdict": "INSUFFICIENT_EVIDENCE",
+                "reason": "required confirmations not reached",
+                "requiredConfirmations": MIN_CONFIRMATIONS,
+                "observedConfirmations": observed_confirmations,
+            }
+        if str(receipt.get("to", "")).lower() != PAYMENT_BATCH_ADDRESS:
+            return {"ok": True, "verdict": "NOT_VERIFIED", "reason": "transaction target is not PaymentBatch"}
 
-        transfer = None
-        payment = None
+        transfers: list[dict[str, Any]] = []
+        payments: list[dict[str, Any]] = []
         for log in receipt.get("logs", []):
             topics = log.get("topics", [])
             address = str(log.get("address", "")).lower()
             if topics and topics[0].lower() == TRANSFER_TOPIC and address == ARGT_ADDRESS and len(topics) == 3:
-                transfer = {
+                transfers.append({
                     "token": address,
                     "sender": _word_address(topics[1]),
                     "recipient": _word_address(topics[2]),
                     "amount": _word_uint(log.get("data", "")),
-                }
+                })
             if (
                 topics
                 and topics[0].lower() == PAYMENT_EXECUTED_TOPIC
                 and address == PAYMENT_BATCH_ADDRESS
                 and len(topics) == 4
             ):
-                payment = {
+                payments.append({
                     "runId": topics[1].lower(),
                     "invoiceRef": topics[2].lower(),
                     "recipient": _word_address(topics[3]),
                     "amount": _word_uint(log.get("data", "")),
-                }
+                })
 
-        if transfer is None or payment is None:
+        matching_payments = [
+            item
+            for item in payments
+            if item["runId"] == expected_run
+            and item["invoiceRef"] == expected_invoice
+            and item["recipient"] == expected_recipient
+            and item["amount"] == expected_amount
+        ]
+        matching_transfers = [
+            item
+            for item in transfers
+            if item["recipient"] == expected_recipient and item["amount"] == expected_amount
+        ]
+        if len(matching_payments) != 1 or len(matching_transfers) != 1:
             return {
                 "ok": True,
                 "verdict": "INSUFFICIENT_EVIDENCE",
-                "reason": "required ARGt Transfer or PaymentExecuted log not found",
-                "transferFound": transfer is not None,
-                "paymentExecutedFound": payment is not None,
+                "reason": "payment evidence is missing or ambiguous",
+                "transferMatches": len(matching_transfers),
+                "paymentExecutedMatches": len(matching_payments),
             }
+        transfer = matching_transfers[0]
+        payment = matching_payments[0]
 
         checks = {
             "transactionSucceeded": True,
@@ -260,7 +319,9 @@ def verify_payment(
             "ok": True,
             "verdict": verdict,
             "transactionHash": tx_hash,
-            "chainId": CHAIN_ID,
+            "chainId": chain_id,
+            "requiredConfirmations": MIN_CONFIRMATIONS,
+            "observedConfirmations": observed_confirmations,
             "checks": checks,
             "transfer": transfer,
             "paymentExecuted": payment,
@@ -277,9 +338,13 @@ def list_invoices() -> dict[str, Any]:
         return {"ok": True, "available": False, "invoices": [], "reason": "VERTICE_INVOICES_PATH is not configured"}
     path = Path(path_value).expanduser()
     try:
+        if path.stat().st_size > MAX_INVOICE_FILE_BYTES:
+            return _error("invalid_invoices", "invoice fixture exceeds the byte limit", path=str(path))
         data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(data, list):
             return _error("invalid_invoices", "invoice fixture must be a JSON array")
+        if len(data) > MAX_INVOICES:
+            return _error("invalid_invoices", "invoice fixture exceeds the item limit")
         return {"ok": True, "available": True, "path": str(path), "invoices": data}
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         return _error("invalid_invoices", str(exc), path=str(path))
@@ -289,6 +354,8 @@ def list_invoices() -> dict[str, Any]:
 def create_payment_proposal(invoices: list[dict[str, Any]]) -> dict[str, Any]:
     """Prepare a deterministic proposal without signing or submitting anything."""
     try:
+        if not isinstance(invoices, list) or len(invoices) > MAX_INVOICES:
+            return _error("proposal_failed", "invoices must be an array within the item limit")
         policy = _load_policy()
         approved = set(policy.get("approvedRecipients", []))
         per_payment_cap = int(policy["maxAmountPerPayment"])
@@ -298,9 +365,15 @@ def create_payment_proposal(invoices: list[dict[str, Any]]) -> dict[str, Any]:
         excluded: list[dict[str, Any]] = []
         total = 0
         for invoice in invoices:
+            if not isinstance(invoice, dict):
+                return _error("proposal_failed", "each invoice must be an object")
             invoice_id = str(invoice.get("invoiceId", ""))
             recipient = str(invoice.get("recipient", "")).lower()
             raw_amount = str(invoice.get("amount", ""))
+            if len(invoice_id) > MAX_FIELD_LENGTH or len(recipient) > MAX_FIELD_LENGTH:
+                return _error("proposal_failed", "invoice field exceeds the length limit")
+            if len(raw_amount) > MAX_UINT256_DECIMAL_DIGITS:
+                return _error("proposal_failed", "amount exceeds uint256 decimal length")
             reasons: list[str] = []
             if not invoice_id:
                 reasons.append("MISSING_INVOICE_ID")

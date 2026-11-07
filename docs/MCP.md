@@ -27,6 +27,7 @@ authority for payments that cross the configured threshold.
 
 ```shell
 export ARBITRUM_RPC_URL=https://arb1.arbitrum.io/rpc
+export VERTICE_MIN_CONFIRMATIONS=12
 export ARGT_ADDRESS=0x59863989d080b22476db95656d0c3cc18be92214
 export PAYMENT_BATCH_ADDRESS=0x21bf9822877502ea7e5c2f973c0e335174763965
 export PAYMENT_RECEIPT_REGISTRY_ADDRESS=0xc07e0a1854676aaa05f769d6f21db89f9b9487d9
@@ -36,6 +37,15 @@ export VERTICE_INVOICES_PATH=/absolute/path/invoices.json
 ```
 
 Do not put private keys, RPC credentials, or `.env` files in the repository.
+
+`verify_payment` checks `eth_chainId` on every call, requires the configured minimum
+confirmations, and rejects an ambiguous batch instead of selecting the last event. The
+default is 12 confirmations; lower it only for a clearly documented test environment.
+
+The MCP itself is not an operating-system sandbox. Run it with a dedicated unprivileged
+user, a minimal environment, a read-only filesystem except for an explicit workspace, and
+network egress restricted to the selected RPC. If Claude is launched over SSH, verify
+those controls in the host runtime rather than inferring them from this server.
 
 ## Run with stdio
 
