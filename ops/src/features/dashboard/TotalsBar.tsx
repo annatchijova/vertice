@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { Currency, Invoice } from "@/domain/invoice";
 import { formatAmount, shortHash } from "@/domain/format";
@@ -42,6 +45,24 @@ export function TotalsBar({ rows, onPaid }: Props) {
   for (const r of toSign) signGroups.set(r.invoice.currency, [...(signGroups.get(r.invoice.currency) ?? []), r.invoice]);
 
   const lastAutoTx = auto.find((r) => r.txHash)?.txHash;
+  const [collapsed, setCollapsed] = useState(false);
+
+  const toggle = (
+    <button
+      type="button"
+      onClick={() => setCollapsed((c) => !c)}
+      aria-expanded={!collapsed}
+      aria-controls="vx-totals-body"
+      aria-label={collapsed ? "Expandir totales" : "Minimizar totales"}
+      title={collapsed ? "Expandir totales" : "Minimizar totales"}
+      className="vx-btn vx-btn--ghost vx-btn--sm"
+      style={{ minWidth: 0, paddingInline: 10 }}
+    >
+      <span aria-hidden="true" style={{ display: "inline-block", transform: collapsed ? "rotate(180deg)" : "none" }}>
+        ▾
+      </span>
+    </button>
+  );
 
   return (
     <section
@@ -52,7 +73,27 @@ export function TotalsBar({ rows, onPaid }: Props) {
         borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-lift)",
       }}
     >
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
+      {collapsed ? (
+        <div
+          style={{
+            display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between",
+            gap: 12, padding: "8px 12px 8px 20px",
+          }}
+        >
+          <span className="vx-mono" style={{ fontSize: 12, color: "var(--ink-500)" }}>
+            Auto {formatTotals(sumByCurrency(auto)) || "0,00 ARGt"} · Firma{" "}
+            <strong style={{ color: "var(--ink-900)" }}>{formatTotals(sumByCurrency(toSign)) || "0,00 ARGt"}</strong>
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {[...signGroups.entries()].map(([c, invoices]) => (
+              <PayButton key={c} invoices={invoices} onPaid={onPaid} />
+            ))}
+            {toggle}
+          </div>
+        </div>
+      ) : (
+      <div id="vx-totals-body" style={{ display: "flex", flexWrap: "wrap", position: "relative" }}>
+        <div style={{ position: "absolute", top: 8, right: 8 }}>{toggle}</div>
         <div
           style={{
             flex: "1 1 260px", minWidth: 0, padding: "12px 20px", display: "flex", flexDirection: "column", gap: 2,
@@ -110,6 +151,7 @@ export function TotalsBar({ rows, onPaid }: Props) {
           </div>
         </div>
       </div>
+      )}
     </section>
   );
 }
