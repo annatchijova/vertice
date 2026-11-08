@@ -18,6 +18,8 @@ contract PaymentBatch is Ownable {
     error LengthMismatch();
     error EmptyBatch();
     error RunAlreadyExecuted(bytes32 runId);
+    error InvoiceAlreadyExecuted(bytes32 invoiceRef);
+    error ZeroInvoiceRef();
     error RecipientNotApproved(address recipient);
     error ZeroAmount();
     error ExceedsPerPaymentCap(uint256 amount, uint256 cap);
@@ -30,6 +32,7 @@ contract PaymentBatch is Ownable {
 
     mapping(address recipient => bool approved) public approvedRecipients;
     mapping(bytes32 runId => bool executed) public executedRuns;
+    mapping(bytes32 invoiceRef => bool executed) public executedInvoices;
 
     uint256 public maxAmountPerPayment;
     uint256 public maxAmountPerBatch;
@@ -86,7 +89,11 @@ contract PaymentBatch is Ownable {
         for (uint256 i = 0; i < len; i++) {
             address recipient = recipients[i];
             uint256 amount = amounts[i];
+            bytes32 invoiceRef = invoiceRefs[i];
             if (!approvedRecipients[recipient]) revert RecipientNotApproved(recipient);
+            if (invoiceRef == bytes32(0)) revert ZeroInvoiceRef();
+            if (executedInvoices[invoiceRef]) revert InvoiceAlreadyExecuted(invoiceRef);
+            executedInvoices[invoiceRef] = true;
             if (amount == 0) revert ZeroAmount();
             if (amount > perPaymentCap) revert ExceedsPerPaymentCap(amount, perPaymentCap);
             total += amount;

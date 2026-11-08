@@ -187,6 +187,19 @@ npm install
 npm run dev
 ```
 
+## Known limitations
+
+- The independent PROOF application (`web/`) accepts a transaction with exactly
+  one ARGt `Transfer` and one `PaymentExecuted`. Multi-payment batches can be
+  disambiguated in PROOF inside OPS by providing `invoiceRef`.
+- Both implementations provide the `RPC_ATTESTED` assurance level: they compare
+  RPC responses and receipt logs, but do not verify an independent cryptographic
+  proof of inclusion in Arbitrum state. `RECENT_BLOCKHASH_PROOF` and
+  `PERSISTENT_ROOT_PROOF` are not implemented.
+- `PaymentBatch` is not upgradeable. The invoice uniqueness and non-zero-reference
+  checks in this source apply only to new deployments. Existing deployed addresses
+  listed above retain their original bytecode until they are replaced or migrated.
+
 ### Herramientas MCP disponibles
 
 El agente puede investigar, preparar y verificar pagos mediante estas herramientas. Todas

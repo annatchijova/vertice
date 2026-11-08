@@ -61,6 +61,7 @@ contract PaymentBatchTest is Test {
 
         assertEq(token.balanceOf(supplierA), 500e18);
         assertTrue(batch.executedRuns(bytes32("run-1")));
+        assertTrue(batch.executedInvoices("INV-001"));
     }
 
     function test_PayBatch_MultiplePayments_AtomicAndEachEmitsOwnEvent() public {
@@ -93,6 +94,54 @@ contract PaymentBatchTest is Test {
         vm.expectRevert(abi.encodeWithSelector(PaymentBatch.RunAlreadyExecuted.selector, bytes32("run-3")));
         vm.prank(payer);
         batch.payBatch(bytes32("run-3"), recipients, amounts, refs);
+    }
+
+    function test_RevertWhen_InvoiceRefReusedAcrossRuns() public {
+        (address[] memory recipients, uint256[] memory amounts, bytes32[] memory refs) =
+            _single(supplierA, 100e18, "INV-021");
+
+        vm.prank(payer);
+        batch.payBatch(bytes32("run-21"), recipients, amounts, refs);
+
+        vm.expectRevert(abi.encodeWithSelector(PaymentBatch.InvoiceAlreadyExecuted.selector, bytes32("INV-021")));
+        vm.prank(payer);
+        batch.payBatch(bytes32("run-22"), recipients, amounts, refs);
+    }
+
+    function test_RevertWhen_InvoiceRefDuplicatedWithinBatch() public {
+        address[] memory recipients = new address[](2);
+        uint256[] memory amounts = new uint256[](2);
+        bytes32[] memory refs = new bytes32[](2);
+        recipients[0] = supplierA;
+        recipients[1] = supplierB;
+        amounts[0] = 100e18;
+        amounts[1] = 200e18;
+        refs[0] = "INV-023";
+        refs[1] = "INV-023";
+
+        vm.expectRevert(abi.encodeWithSelector(PaymentBatch.InvoiceAlreadyExecuted.selector, bytes32("INV-023")));
+        vm.prank(payer);
+        batch.payBatch(bytes32("run-23"), recipients, amounts, refs);
+
+        assertEq(token.balanceOf(supplierA), 0);
+        assertEq(token.balanceOf(supplierB), 0);
+        assertFalse(batch.executedRuns(bytes32("run-23")));
+        assertFalse(batch.executedInvoices("INV-023"));
+
+        (address[] memory retryRecipients, uint256[] memory retryAmounts, bytes32[] memory retryRefs) =
+            _single(supplierA, 100e18, "INV-023");
+        vm.prank(payer);
+        batch.payBatch(bytes32("run-24"), retryRecipients, retryAmounts, retryRefs);
+        assertEq(token.balanceOf(supplierA), 100e18);
+    }
+
+    function test_RevertWhen_InvoiceRefIsZero() public {
+        (address[] memory recipients, uint256[] memory amounts, bytes32[] memory refs) =
+            _single(supplierA, 100e18, bytes32(0));
+
+        vm.expectRevert(PaymentBatch.ZeroInvoiceRef.selector);
+        vm.prank(payer);
+        batch.payBatch(bytes32("run-25"), recipients, amounts, refs);
     }
 
     function test_RevertWhen_ReentrantTokenReplaysRunIdMidTransfer() public {
