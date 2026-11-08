@@ -101,27 +101,43 @@ export function preflight(invoice: Invoice, snap: ChainSnapshot): Preflight {
   }
   if (!approved) reasons.push("RECIPIENT_NOT_APPROVED");
 
-  // 2. Número de factura único (PaymentExecuted on-chain)
-  const paid = Boolean(payment);
+  // 2. Número de factura único: la factura coincide con lo que dice la cadena.
+  // `executed` ya absorbe `payment` (OR), así que comparar contra `executed`
+  // acá nunca puede fallar — hay que comparar las dos señales *independientes*
+  // (lo que afirma la factura vs. lo que se observó on-chain), no la fusión.
+  const claimedExecuted = Boolean(invoice.executed);
+  const onchainPaid = Boolean(payment);
+  const stateMismatch = claimedExecuted !== onchainPaid;
   checks.push({
     key: "unique",
     name: "Número de factura único",
-    detail: executed ? "pagada una sola vez, en esta transacción" : paid ? "ya existe un pago con ese número" : "sin pagos previos con ese número",
-    status: !executed && paid ? "fail" : "pass",
-    result: !executed && paid ? "Fail" : "Pass",
+    detail: onchainPaid
+      ? claimedExecuted
+        ? "pagada una sola vez, en esta transacción"
+        : "ya existe un pago on-chain con ese número, pero la factura no estaba marcada como pagada"
+      : claimedExecuted
+        ? "marcada como pagada, pero no se encontró el evento on-chain"
+        : "sin pagos previos con ese número",
+    status: stateMismatch ? "fail" : "pass",
+    result: stateMismatch ? "Fail" : "Pass",
   });
 
-  // 3. Precio vs. últimos 3 meses
-  const average = invoice.history.reduce((s, h) => s + Number(h.amount), 0) / invoice.history.length;
-  const pricePct = Math.round(((Number(invoice.amount) - average) / average) * 100);
-  const priceAlert = pricePct > PRICE_ALERT_PCT;
+  // 3. Precio vs. últimos 3 meses — sin historial no hay promedio que comparar;
+  // dividir por longitud 0 da NaN y NaN > N siempre es false, así que esto no
+  // podía romper el flujo, pero sí mostraba "promedio NaN" en la UI.
+  const hasHistory = invoice.history.length > 0;
+  const average = hasHistory ? invoice.history.reduce((s, h) => s + Number(h.amount), 0) / invoice.history.length : 0;
+  const pricePct = hasHistory ? Math.round(((Number(invoice.amount) - average) / average) * 100) : 0;
+  const priceAlert = hasHistory && pricePct > PRICE_ALERT_PCT;
   if (priceAlert) reasons.push("PRICE_ALERT");
   checks.push({
     key: "price",
     name: "Precio vs. últimos 3 meses",
-    detail: `promedio ${formatAmount(average)} · ${pricePct >= 0 ? "+" : ""}${pricePct}%${priceAlert ? ` · alerta desde ${PRICE_ALERT_PCT}%` : ""}`,
-    status: priceAlert ? "alert" : "pass",
-    result: priceAlert ? "Alerta" : "Pass",
+    detail: hasHistory
+      ? `promedio ${formatAmount(average)} · ${pricePct >= 0 ? "+" : ""}${pricePct}%${priceAlert ? ` · alerta desde ${PRICE_ALERT_PCT}%` : ""}`
+      : "sin historial previo para este proveedor",
+    status: priceAlert ? "alert" : hasHistory ? "pass" : "abstain",
+    result: priceAlert ? "Alerta" : hasHistory ? "Pass" : "No corre",
   });
 
   // 4. Tope duro del contrato
