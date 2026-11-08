@@ -207,6 +207,15 @@ La especificación completa, configuración y límites de autoridad están en
 VELO, MNEME, RAVEN, ZAYNOR y FORGE está en [`docs/TOOLS.md`](docs/TOOLS.md).
 
 
+## Authors
+
+VÉRTICE was created by Anna Tchijova and developed
+with substantial frontend contributions from
+[https://github.com/martinbogado].
+
+See [AUTHORS.md](AUTHORS.md) for detailed credits.
+
+
 ## Licencia
 
 Apache License 2.0. Ver [`LICENSE`](./LICENSE).
